@@ -1,0 +1,19 @@
+import mongoose, { Model, Schema } from "mongoose";
+import type { IEnrollment } from "../interfaces/enrollment.interface.js";
+
+const enrollmentSchema = new Schema<IEnrollment>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    enrolledAt: {
+      type: Date,
+      default:Date.now()
+    },
+  },
+  { timestamps: true },
+);
+
+export const Enrollment: Model<IEnrollment> = mongoose.model<IEnrollment>(
+  "Enrollment",
+  enrollmentSchema,
+);
