@@ -1,13 +1,16 @@
-import { Document, Types } from "mongoose"
+import { Document, Types } from "mongoose";
 
 export interface IVideo {
-    url:string
+  url: string;
+  publicId: string;
+  duration: Number;
 }
 
-export interface ILesson extends Document{
-    title:string,
-    description:string;
-    order:number;
-    videoUrls:IVideo[];
-    courseId:Types.ObjectId;
+export interface ILesson extends Document {
+  title: string;
+  description: string;
+  order: number;
+  videos: IVideo;
+  course: Types.ObjectId;
+  createdBy: Types.ObjectId;
 }

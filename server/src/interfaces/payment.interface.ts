@@ -5,7 +5,8 @@ export interface IPayment extends Document {
   amount: number;
   status: PaymentStatus;
   transactionId: string;
-  paymentMethod: PaymentMethods;
+  paymentMethod: string;
   paidAt: Date;
-  courseId: Types.ObjectId;
+  orderId: Types.ObjectId;
+  user:Types.ObjectId;
 }

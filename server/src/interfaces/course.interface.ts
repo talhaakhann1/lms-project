@@ -5,9 +5,11 @@ export interface ICourse extends Document{
     description:string
     thumbnail:{
         url:string;
+        publicId: string;
     }
     price:number,
-    intructorId:Types.ObjectId,
-    categoryId:Types.ObjectId,
+    instructors:Types.ObjectId,
+    category:Types.ObjectId,
     isPublished:boolean
+    createdBy:Types.ObjectId
 }
