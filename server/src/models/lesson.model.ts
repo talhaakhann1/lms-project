@@ -5,7 +5,7 @@ const lessonSchema = new Schema<ILesson>(
   {
     title: {
       type: String,
-      unique:true,
+      unique: true,
       required: true,
     },
     description: {
@@ -14,16 +14,30 @@ const lessonSchema = new Schema<ILesson>(
     },
     order: {
       type: Number,
-      unique:true,
+      unique: true,
       required: true,
     },
-    videoUrls: {
-      type: [String],
-      default: [],
+    videos: {
+      url: {
+        type: String,
+        required: true,
+      },
+      publicId: {
+        type: String,
+        required: true,
+      },
+      duration: {
+        type: Number,
+        required: true,
+      },
     },
-    courseId: {
+    course: {
       type: Schema.Types.ObjectId,
       ref: "Course",
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true },

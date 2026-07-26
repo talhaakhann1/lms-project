@@ -10,8 +10,7 @@ const paymentSchema = new Schema<IPayment>(
     },
     status: {
       type: String,
-      enum: PaymentStatus,
-      default: PaymentStatus.PENDING,
+      enum: PaymentStatus
     },
     transactionId: {
       type: String,
@@ -19,16 +18,20 @@ const paymentSchema = new Schema<IPayment>(
     },
     paymentMethod: {
       type: String,
-      enum: PaymentMethods,
+      default:"stripe"
     },
     paidAt: {
       type: Date,
       default: Date.now(),
     },
-    courseId: {
+    orderId: {
       type: Schema.Types.ObjectId,
-      ref: "Course",
+      ref: "Order",
     },
+    user:{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }
   },
   { timestamps: true },
 );

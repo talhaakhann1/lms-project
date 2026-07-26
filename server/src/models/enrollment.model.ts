@@ -3,8 +3,8 @@ import type { IEnrollment } from "../interfaces/enrollment.interface.js";
 
 const enrollmentSchema = new Schema<IEnrollment>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
-    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    course: { type: Schema.Types.ObjectId, ref: "Course" },
     enrolledAt: {
       type: Date,
       default:Date.now()

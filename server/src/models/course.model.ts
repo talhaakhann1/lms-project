@@ -15,18 +15,22 @@ const courseSchema = new Schema<ICourse>(
     thumbnail: {
       url: {
         type: String,
+      },
+      publicId: {
+        type: String
       }
     },
     price: {
       type: Number,
       required: true
     },
-    intructorId: { type: Schema.Types.ObjectId, ref: "User" },
-    categoryId: { type: Schema.Types.ObjectId, ref: "Category" },
+    instructors: { type: Schema.Types.ObjectId, ref: "User" },
+    category: { type: Schema.Types.ObjectId, ref: "Category" },
     isPublished: {
       type: Boolean,
       default:false
     },
+    createdBy:{ type: Schema.Types.ObjectId, ref: "User" }
   },
   { timestamps: true },
 );
