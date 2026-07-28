@@ -10,7 +10,7 @@ export interface ILesson extends Document {
   title: string;
   description: string;
   order: number;
-  videos: IVideo;
+  video: IVideo;
   course: Types.ObjectId;
   createdBy: Types.ObjectId;
 }

@@ -5,7 +5,7 @@ export interface IOrder{
     course:Types.ObjectId
     user:Types.ObjectId
     status:OrderStatus,
-    amount:number,
+    totalAmount:number,
     isPaid:boolean
-    paymentIntentId:Types.ObjectId
+    paymentIntentId:string
 }

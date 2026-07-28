@@ -8,7 +8,7 @@ export interface ICourse extends Document{
         publicId: string;
     }
     price:number,
-    instructors:Types.ObjectId,
+    instructor:Types.ObjectId,
     category:Types.ObjectId,
     isPublished:boolean
     createdBy:Types.ObjectId
