@@ -1,9 +1,5 @@
 "use client"
 import { useEffect, useState } from "react";
-import { AppShell } from "../../../components/app-shell";
-// import CoursePage from "@/src/components/course/pages/CoursePage";
-import { Dashboard } from "../../../components/dashboard";
-import ReviewPage from "../../../components/review/ReviewPage";
 import { courseService } from "@/src/services/course.service";
 import { Course } from "@/src/types/interfaces/course.interface";
 import { setLoading } from "@/src/store/authSlice";
@@ -13,22 +9,10 @@ import { AxiosError } from "axios";
 import ApiResponse from "@/src/utils/ApiResponse";
 import Image from "next/image";
 import { motion } from "framer-motion";
-// import { Star, Users, Clock, BarChart } from "lucide-react";
-// import {
-//   Card,
-//   CardContent,
-//   CardFooter,
-// } from "../../components/ui/card";
-// import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
-// import { Badge } from "../../components/ui/badge";
-// import { Button } from "../../components/ui/button";
-// import { Course } from "@/src/types/interfaces/course.interface";
-import { useRouter } from "next/navigation";
-import { CourseCardSkeleton } from "@/src/components/cards/CourseCardSkeleton";
+import { CourseCardSkeleton, CourseCardSkeletonGrid } from "@/src/components/cards/CourseCardSkeleton";
 import { CourseCard } from "@/src/components/cards/CourseCard";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useAppSelector } from "@/src/store/hook";
+import { useCallback } from "react";
 
 const containerVariants = {
   hidden: {},
@@ -52,9 +36,11 @@ const itemVariants = {
 export default function page() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [courses, setCourses] = useState<Course[]>([])
-  const user = useAppSelector((state) => state.auth.user)
-  const router = useRouter()
-  const fetchAllCourses = async () => {
+  const user = useAppSelector((state) => state.auth)
+  const role = user?.user?.role
+  const isLoggedIn = user.isLoggedIn
+
+  const fetchAllCourses = useCallback(async () => {
     setIsLoading(true)
     try {
       const res = await courseService.getAll()
@@ -74,47 +60,52 @@ export default function page() {
     } finally {
       setIsLoading(false)
     }
-  }
+  },[])
   useEffect(() => {
     fetchAllCourses()
-  }, [])
+  }, [fetchAllCourses])
 
   return (
     <div className="px-6 pt-24">
-  <div className="mx-auto w-full max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl">
 
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-          
+
             <h1 className="text-3xl font-bold text-foreground">
               Our Courses
             </h1>
+            <p className="mt-2 max-w-2xl text-muted-foreground">
+              Discover courses designed to help you learn, grow, and turn your
+              knowledge into real-world skills.
+            </p>
           </div>
         </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
-        >
-          {isLoading ? (
-            <CourseCardSkeleton />
-          ) : (
-            courses.map((course) => (
+        {isLoading ? (
+          <CourseCardSkeletonGrid />
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
+          >
+            {courses.map((course) => (
               <motion.div
                 key={course.id}
                 variants={itemVariants}
                 className="h-full"
               >
                 <CourseCard
+                  isLoggedIn={isLoggedIn}
                   course={course}
-                  role={user?.role}
+                  role={role}
                 />
               </motion.div>
-            ))
-          )}
-        </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   )
