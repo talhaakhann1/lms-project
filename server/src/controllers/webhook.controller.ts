@@ -13,7 +13,6 @@ import { Lesson } from "../models/lesson.model.js";
 
 export const stripeWebhook = asyncHandler(
   async (req: Request, res: Response) => {
-
     const signature = req.headers["stripe-signature"];
 
     if (!signature || Array.isArray(signature)) {
@@ -33,14 +32,21 @@ export const stripeWebhook = asyncHandler(
     }
     switch (event.type) {
       case "checkout.session.completed": {
-
         const checkoutSession = event.data.object;
+
+        if (!checkoutSession.payment_intent) {
+          return res.sendStatus(200);
+        }
+
 
         const paymentIntent = await stripe.paymentIntents.retrieve(
           checkoutSession.payment_intent as string,
         );
 
-        const { orderId, userId } = paymentIntent.metadata;
+        const { orderId, userId } = checkoutSession.metadata as {
+          orderId: string;
+          userId: string;
+        };
 
         console.log(paymentIntent.metadata);
 
@@ -52,7 +58,6 @@ export const stripeWebhook = asyncHandler(
 
         try {
           await session.withTransaction(async () => {
-            
             const existingPayment = await Payment.findOne({
               transactionId: paymentIntent.id,
             }).session(session);
@@ -144,17 +149,13 @@ export const stripeWebhook = asyncHandler(
           });
 
           return res.sendStatus(200);
-          
-        } catch(error:unknown){
-          console.log("webhook",error);
-      
-        }
-        finally {
+        } catch (error: unknown) {
+          console.log("webhook", error);
+          return res.status(500).send("Webhook handler failed");
+        } finally {
           await session.endSession();
         }
       }
-
-
 
       default:
         return res.sendStatus(200);
