@@ -16,23 +16,41 @@ export default function PaymentSuccessPage() {
 
   const orderId = searchParams.get("orderId");
   const courseId = searchParams.get("courseId");
-  const fetchPayment = useCallback(async () => {
-    setIsLoading(true)
+ const fetchPayment = useCallback(async () => {
+  setIsLoading(true);
+
+  const MAX_RETRIES = 8;
+  const DELAY_MS = 2000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const payment = await paymentService.getByOrderId(orderId as string)
-      setPayment(payment)
+      const payment = await paymentService.getByOrderId(orderId as string);
+      setPayment(payment);
+      setIsLoading(false);
+      return; // ✅ Success — stop retrying
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const status = axiosError.response?.status;
+
+      // Only retry on 404 (webhook not processed yet)
+      // Stop immediately on other errors (400, 500, etc.)
+      if (status === 404 && attempt < MAX_RETRIES) {
+        console.log(`Payment not ready yet, retrying... (${attempt}/${MAX_RETRIES})`);
+        await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+        continue;
+      }
+
+      // Final attempt or non-404 error — show error
       const errorMessage =
         axiosError.response?.data.message ?? "Something went wrong";
-
       console.error(errorMessage);
-
       showError("Something went wrong", errorMessage);
-    } finally {
-      setIsLoading(false)
+      break;
     }
-  }, [])
+  }
+
+  setIsLoading(false);
+}, [orderId]);
 
   useEffect(() => {
     fetchPayment()
