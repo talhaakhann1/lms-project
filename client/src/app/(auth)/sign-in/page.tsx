@@ -3,12 +3,12 @@ import { useFormState } from "react-dom";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { FieldGroup, FieldLabel, FieldSeparator } from "../../../components/ui/field";
-import { Field, FieldDescription,FieldError } from "../../../components/ui/field";
+import { Field, FieldDescription, FieldError } from "../../../components/ui/field";
 import { Input } from "../../../components/ui/input";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useAppDispatch } from "@/src/store/hook";
 import { useRouter } from "next/navigation";
 import { signInSchema } from "@/src/Schemas/user.schema";
@@ -17,14 +17,13 @@ import { Controller, useForm } from "react-hook-form";
 import { api } from "@/src/libs/axios";
 import ApiResponse from "@/src/utils/ApiResponse";
 import { AxiosError } from "axios";
-import { IUser } from "@/src/types/interfaces/user.interface";
 import { User } from "next-auth";
 import { logIn } from "@/src/store/authSlice";
 import { authService } from "@/src/services/auth.service";
 import { showError, showSuccess } from "@/src/components/ui/toaster";
 
 
-export default function Auth1() {
+export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const dispatch = useAppDispatch()
@@ -59,32 +58,36 @@ export default function Auth1() {
     </svg>
   );
 
+
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
       password: "",
-      rememberMe:false
+      rememberMe: false
     }
   })
 
- const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+  const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true)
     try {
 
-      const res = await authService.login(data)
-      console.log(res);
-      
-      dispatch(logIn(res))
-      router.replace("/dashboard")  
+      const user = await authService.login(data)
+      console.log(user);
+
+      dispatch(logIn(user))
+      if (["admin", "instructor"].includes(user.role)) {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
       showSuccess("Login Successfully")
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse<unknown>>
 
       let errorMessage = AxiosError.response?.data.message
-     console.log(errorMessage);
-     
-    showError("Something went wrong",errorMessage)
+
+      showError(errorMessage??"")
     } finally {
       setIsSubmitting(false)
     }
@@ -262,30 +265,24 @@ export default function Auth1() {
             </FieldGroup>
           </form>
 
-          {/* <FieldDescription className="!mt-6 text-center">
+          <FieldDescription className="!mt-6 text-center">
             Don't have an account?{" "}
             <Link href="/sign-up" className="font-medium text-foreground">
               Sign up
             </Link>
-          </FieldDescription> */}
-        <FieldDescription className="!mt-6 text-center">
-          Don't have an account?{" "}
-          <Link href="/sign-up" className="font-medium text-foreground">
-            Sign up
-          </Link>
-        </FieldDescription>
+          </FieldDescription>
 
-        <FieldDescription className="mt-4 px-6 text-center">
-          By signing in, you agree to our{" "}
-          <Link href="/terms" className="underline">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="underline">
-            Privacy Policy
-          </Link>
-          .
-        </FieldDescription>
+          <FieldDescription className="mt-4 px-6 text-center">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="underline">
+              Privacy Policy
+            </Link>
+            .
+          </FieldDescription>
         </div>
 
       </div>

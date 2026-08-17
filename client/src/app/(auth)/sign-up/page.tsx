@@ -68,7 +68,7 @@ const socialProviders = [
   },
 ];
 
-export default function Auth13() {
+export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const dispatch = useAppDispatch()
