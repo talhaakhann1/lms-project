@@ -7,9 +7,18 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose, { type PipelineStage } from "mongoose";
 import { Lesson } from "../models/lesson.model.js";
 import { Types } from "mongoose";
-import { Category } from "../models/category.model.js";
 
-function commonCourseAggregation():PipelineStage[] {
+export function commonCourseAggregation(
+  userId?: Types.ObjectId,
+): PipelineStage[] {
+  const matchExpr = userId
+    ? {
+        $and: [{ $eq: ["$course", "$$courseId"] }, { $eq: ["$user", userId] }],
+      }
+    : {
+        $eq: [1, 0],
+      };
+
   return [
     {
       $lookup: {
@@ -23,6 +32,8 @@ function commonCourseAggregation():PipelineStage[] {
               _id: 0,
               id: { $toString: "$_id" },
               fullName: 1,
+              title: 1,
+              bio: 1,
               avatar: 1,
             },
           },
@@ -31,31 +42,60 @@ function commonCourseAggregation():PipelineStage[] {
     },
     {
       $lookup: {
-        from: "categories",
-        localField: "category",
-        foreignField: "_id",
-        as: "category",
+        from: "enrollments",
+        let: {
+          courseId: "$_id",
+        },
         pipeline: [
+          {
+            $match: {
+              $expr: matchExpr,
+            },
+          },
           {
             $project: {
               _id: 0,
-              id: { $toString: "$_id" },
-              name: 1,
+              progress: 1,
+              completedLessons: 1,
+              totalLessons: 1,
             },
           },
         ],
+        as: "enrollment",
       },
     },
-    { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        isEnrolled: {
+          $gt: [{ $size: "$enrollment" }, 0],
+        },
+      },
+    },
+    {
+      $unwind: {
+        path: "$instructor",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
     {
       $project: {
+        _id: 0,
+        id: { $toString: "$_id" },
+
         title: 1,
         description: 1,
         thumbnail: 1,
+        tagline: 1,
+        level: 1,
         price: 1,
+        learningOutcomes: 1,
+        requirements: 1,
+
         instructor: 1,
         category: 1,
+
+        isEnrolled: 1,
+
         createdAt: 1,
         updatedAt: 1,
       },
@@ -65,8 +105,18 @@ function commonCourseAggregation():PipelineStage[] {
 
 export const createCourse = asyncHandler(
   async (req: Request, res: Response) => {
-    const { title, description, price, instructor, isPublished, category } =
-      req.body;
+    const {
+      title,
+      description,
+      tagline,
+      price,
+      learningOutcomes,
+      requirements,
+      level,
+      instructor,
+      isPublished,
+      category,
+    } = req.body;
     const userId = req.user._id;
     if (!req.file) {
       throw new ApiError(404, "thumbnail file is required");
@@ -89,7 +139,14 @@ export const createCourse = asyncHandler(
     const course = await Course.create({
       title,
       description,
+      tagline,
       price,
+      thumbnail: {
+        url: thumbnail.secure_url,
+      },
+      level,
+      learningOutcomes,
+      requirements,
       instructor,
       isPublished,
       category,
@@ -101,7 +158,7 @@ export const createCourse = asyncHandler(
           _id: new mongoose.Types.ObjectId(course._id),
         },
       },
-        ...commonCourseAggregation(),
+      ...commonCourseAggregation(),
     ]);
     return res
       .status(201)
@@ -113,34 +170,76 @@ export const createCourse = asyncHandler(
 
 export const updateCourse = asyncHandler(
   async (req: Request, res: Response) => {
-    const { title, description, price, category } = req.body;
+    const {
+      title,
+      description,
+      tagline,
+      instructor,
+      category,
+      level,
+      price,
+      learningOutcomes,
+      requirements,
+      isPublished,
+    } = req.body;
+    console.log("REs", req.body);
+
+    const updateData: Record<string, unknown> = {};
+
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (tagline !== undefined) updateData.tagline = tagline;
+    if (instructor !== undefined) updateData.instructor = instructor;
+    if (category !== undefined) updateData.category = category;
+    if (level !== undefined) updateData.level = level;
+    if (price !== undefined) updateData.price = price;
+    if (learningOutcomes !== undefined)
+      updateData.learningOutcomes = learningOutcomes;
+    if (requirements !== undefined) updateData.requirements = requirements;
+    if (isPublished !== undefined) updateData.isPublished = isPublished;
+
     const { courseId } = req.params;
     if (!courseId) {
       throw new ApiError(400, "courseId is required");
     }
-    const userId = req.user._id;
-    const existedCourse = await Course.findOne({
-      _id: courseId,
-      createdBy: userId,
-    });
+
+    const existedCourse = await Course.findById(courseId);
     if (!existedCourse) {
-      throw new ApiError(404, "course does not exist or access denied");
+      throw new ApiError(404, "course does not exist");
+    }
+    if (req.file) {
+      console.log("file", req.file);
+
+      const thumbnailLocalPath = req.file.path;
+
+      const uploadedThumbnail = await uploadAtCloudinary(thumbnailLocalPath);
+
+      if (!uploadedThumbnail) {
+        throw new ApiError(
+          500,
+          "Something went wrong while uploading the thumbnail.",
+        );
+      }
+
+      if (existedCourse.thumbnail?.publicId) {
+        await deleteAtCloudinary(existedCourse.thumbnail.publicId, "image");
+      }
+
+      updateData.thumbnail = {
+        url: uploadedThumbnail.secure_url,
+        publicId: uploadedThumbnail.public_id,
+      };
     }
 
-    const course = await Course.findOneAndUpdate(
+    const course = await Course.findByIdAndUpdate(
+      courseId,
       {
-        _id: courseId,
-        createdBy: userId,
+        $set: updateData,
       },
       {
-        $set: {
-          title,
-          description,
-          price,
-          category,
-        },
+        new: true,
+        runValidators: true,
       },
-      { new: true },
     );
     if (!course) {
       throw new ApiError(400, "Something went wrong while updating course");
@@ -152,7 +251,7 @@ export const updateCourse = asyncHandler(
           isPublished: true,
         },
       },
-        ...commonCourseAggregation(),
+      ...commonCourseAggregation(req.user._id),
     ]);
 
     return res
@@ -203,7 +302,7 @@ export const deleteCourse = asyncHandler(
 
 export const getCourseById = asyncHandler(
   async (req: Request, res: Response) => {
-    const  courseId  = req.params.courseId as string;
+    const courseId = req.params.courseId as string;
     if (!courseId) {
       throw new ApiError(400, "courseId is required");
     }
@@ -214,16 +313,16 @@ export const getCourseById = asyncHandler(
     const [course] = await Course.aggregate([
       {
         $match: {
-          _id:  new Types.ObjectId(courseId),
-          isPublished: true
+          _id: new Types.ObjectId(courseId),
+          isPublished: true,
         },
       },
-      ...commonCourseAggregation()
+      ...commonCourseAggregation(req.user?._id),
     ]);
     return res
       .status(200)
       .json(
-        new ApiResponse(200, course ||[], "Successfully get course by id"),
+        new ApiResponse(200, course || [], "Successfully get course by id"),
       );
   },
 );
@@ -236,7 +335,7 @@ export const getAllCourses = asyncHandler(
           isPublished: true,
         },
       },
-      ...commonCourseAggregation()
+      ...commonCourseAggregation(req.user?._id),
     ]);
     return res
       .status(200)
@@ -252,7 +351,7 @@ export const getAllCourses = asyncHandler(
 
 export const updateCourseThumbnail = asyncHandler(
   async (req: Request, res: Response) => {
-    const {courseId} = req.params ;
+    const { courseId } = req.params;
     if (!courseId) {
       throw new ApiError(400, "course id is required");
     }
