@@ -2,7 +2,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadDir = "./public/temp";
+
+import os from "os";
+
+const uploadDir = process.env.NODE_ENV === "production" ? "/tmp" : os.tmpdir();
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -20,17 +23,17 @@ const storage = multer.diskStorage({
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100 MB
+    fileSize: 100 * 1024 * 1024,
   },
   fileFilter: (_req, file, cb) => {
     const allowedMimeTypes = [
-      // Images
+   
       "image/jpeg",
       "image/png",
       "image/webp",
       "image/gif",
 
-      // Videos
+
       "video/mp4",
       "video/webm",
       "video/quicktime",
