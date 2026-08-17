@@ -104,11 +104,11 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const accessTokenMaxAge = 7 * 24 * 60 * 60 * 1000;
   const refreshTokenMaxAge = 30 * 24 * 60 * 60 * 1000;
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-  };
+ const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "none" as const,
+};
 
   return res
     .status(200)

@@ -6,7 +6,6 @@ import { deleteAtCloudinary, uploadAtCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose, { Types, type PipelineStage } from "mongoose";
 import { Lesson } from "../models/lesson.model.js";
-import { useId } from "react";
 import { Enrollment } from "../models/enrollment.model.js";
 import { LessonProgress } from "../models/lessonProgress.model.js";
 import { title } from "process";
