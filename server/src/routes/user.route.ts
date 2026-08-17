@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyJWT, verifyRoles } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyRoles,getLoggedInUserOrIgnore } from "../middlewares/auth.middleware.js";
 import { loginUser, 
     logoutUser,
      refreshAccessToken,
@@ -22,7 +22,7 @@ router.route('/sign-in').post(validate(signInSchema),loginUser)
 router.route('/logout').post(verifyJWT,logoutUser)
 router.route('/refresh-token').get(refreshAccessToken)
 router.route('/change-avatar').patch(verifyJWT,upload.single("avatar"),changeUserAvatar)
-router.route('/get-user').get(verifyJWT,getCurrentUser)
+router.route('/get-user').get(getLoggedInUserOrIgnore,getCurrentUser)
 router.route('/get-users').get(verifyJWT,verifyRoles(["admin"]),getUsers)
 router.route('/get-instructors').get(verifyJWT,verifyRoles(["admin"]),getAllInstructors)
 router.route('/update-role/:userId').patch(verifyJWT,verifyRoles(["admin"]),assignRole)

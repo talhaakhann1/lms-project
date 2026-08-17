@@ -11,6 +11,7 @@ dotenv.config({
 app.use(express.json());
 
 const PORT = process.env.PORT||8000;
+
 connectDB()
   .then(() => {
     const server = app.listen(PORT, () => {

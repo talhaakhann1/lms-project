@@ -15,18 +15,19 @@ const OrderSchema = new Schema<IOrder>(
         },
         status:{
             type:String,
-            enum:OrderStatus
+            enum:OrderStatus,
+            default:OrderStatus.PENDING
         },
-        amount:{
-            type:Number
+        totalAmount:{
+            type:Number,
+            default:0
         },
         isPaid:{
             type:Boolean,
             default:false
         },
-        paymentIntentId:{
-               type: Schema.Types.ObjectId,
-      ref: "Payment",
+        checkoutSessionId :{
+              type:String
         }
 },
   { timestamps: true },

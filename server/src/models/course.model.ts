@@ -12,20 +12,41 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: true,
     },
+    tagline: {
+      type: String,
+      required: true,
+    },
+    level:{
+      type:String,
+      required:true
+    },
     thumbnail: {
       url: {
         type: String,
+        default:`https://via.placeholder.com/200x200.png`
       },
       publicId: {
-        type: String
+        type: String,
+        default: ""
       }
+    },
+     learningOutcomes: {
+      type: String,
+      required: true,
+    },
+     requirements: {
+      type: String,
+      required: true,
     },
     price: {
       type: Number,
       required: true
     },
-    instructors: { type: Schema.Types.ObjectId, ref: "User" },
-    category: { type: Schema.Types.ObjectId, ref: "Category" },
+    instructor: { type: Schema.Types.ObjectId, ref: "User" },
+    category: {
+      type: String,
+      required: true
+    },
     isPublished: {
       type: Boolean,
       default:false

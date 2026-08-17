@@ -1,8 +1,9 @@
 import mongoose, { Model, Schema } from "mongoose";
 import type { IUser } from "../interfaces/user.interface.js";
-import { UserRoles } from "../types/user.enum.js";
+import { UserRoles, UserStatus } from "../types/user.enum.js";
 import bcrypt from "bcrypt"
 import jwt, { type SignOptions } from "jsonwebtoken";
+import crypto from "crypto";
 
 const userSchema = new Schema<IUser>(
   {
@@ -11,7 +12,6 @@ const userSchema = new Schema<IUser>(
       index: true,
       required: true,
       trim: true,
-      lowercase: true,
     },
     email: {
       type: String,
@@ -20,8 +20,20 @@ const userSchema = new Schema<IUser>(
       required: true,
       trim: true,
     },
+    title: {
+      type: String,   
+    },
+    bio: {
+      type: String,
+    },
     password: {
       type: String,
+    },
+    emailVerificationToken: {
+        type: String,
+    },
+    emailVerificationExpiry: {
+        type: Date,
     },
     isVerified:{
       type:Boolean,
@@ -30,19 +42,22 @@ const userSchema = new Schema<IUser>(
     avatar: {
       url: {
         type: String,
+        default:`https://via.placeholder.com/200x200.png`,
         required: true,
       },
       publicId: {
-        type: String
-      },
-      default: {
-        url: `https://via.placeholder.com/200x200.png`,
+        type: String,
+         default: ""
       },
     },
     role: {
       type: String,
       enum: UserRoles,
       default: UserRoles.STUDENT,
+    },
+    status:{
+      type:String,
+      enum:UserStatus,
     },
     refreshToken: {
       type: String,
@@ -56,9 +71,9 @@ userSchema.pre("save",async function(){
   this.password=await bcrypt.hash(this.password,10)
 })
 
-userSchema.methods.isPasswordValid=async function(password:string){
-  return await bcrypt.compare(this.password,password)
-}
+userSchema.methods.isPasswordValid = async function (password: string) {
+  return await bcrypt.compare(password, this.password);
+};
 
 userSchema.methods.generateAccessToken=function(){
    const expiresIn = ( process.env.ACCESS_TOKEN_EXPIRY || "1d") as NonNullable<SignOptions["expiresIn"]>;
@@ -88,6 +103,16 @@ userSchema.methods.generateRefreshToken=function(){
       expiresIn
     }
     )
+}
+
+userSchema.methods.generateTemporaryToken = function () {
+    const unHashedToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(unHashedToken)
+        .digest("hex");
+    const tokenExpiry = Date.now() + 15 * 60 * 1000;
+    return { unHashedToken, hashedToken, tokenExpiry }
 }
 
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);

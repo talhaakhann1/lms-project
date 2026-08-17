@@ -10,7 +10,7 @@ import {
   updateReviewSchema,
 } from "../Schemas/review.schema.js";
 import { validate } from "../Schemas/validate.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { getLoggedInUserOrIgnore, verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -21,6 +21,6 @@ router
   .route("/update/:reviewId")
   .patch(verifyJWT, validate(updateReviewSchema), updateReview);
 router.route("/:reviewId").delete(verifyJWT, deleteReview);
-router.route("/course/:courseId").get(getCourseReviewById);
+router.route("/course/:courseId").get(getLoggedInUserOrIgnore,getCourseReviewById);
 
 export default router;

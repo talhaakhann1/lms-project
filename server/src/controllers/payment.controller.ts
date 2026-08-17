@@ -6,25 +6,54 @@ import mongoose, { Types, type PipelineStage } from "mongoose";
 import { stripe } from "../utils/stripeInstance.js";
 import { Order } from "../models/order.model.js";
 import { Payment } from "../models/payment.model.js";
-import crypto from "crypto";
+import { Course } from "../models/course.model.js";
 
 function commonPaymentAggregation(): PipelineStage[] {
   return [
     {
       $lookup: {
         from: "orders",
-        localField: "orderId",
-        foreignField: "_id",
-        as: "order",
+        let: { orderId: "$orderId" },
         pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$orderId"],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "courses",
+              localField: "course",
+              foreignField: "_id",
+              as: "course",
+              pipeline: [
+                {
+                  $project: {
+                    _id: 0,
+                    id: { $toString: "$_id" },
+                    title: 1,
+                  },
+                },
+              ],
+            },
+          },
           {
             $project: {
               _id: 0,
               id: { $toString: "$_id" },
               status: 1,
+              course: { $first: "$course" },
             },
           },
         ],
+        as: "order",
+      },
+    },
+    {
+      $addFields: {
+        order: { $first: "$order" },
       },
     },
     {
@@ -45,8 +74,7 @@ function commonPaymentAggregation(): PipelineStage[] {
         ],
       },
     },
-    { $unwind: "$order" },
-    { $unwind: "$user" },
+    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     {
       $project: {
         _id: 0,
@@ -70,74 +98,144 @@ function commonPaymentAggregation(): PipelineStage[] {
   ];
 }
 
-export const createPaymentIntent = asyncHandler(
+// export const createPaymentIntent = asyncHandler(
+//   async (req: Request, res: Response) => {
+//     const { orderId } = req.params;
+//     if (!orderId) {
+//       throw new ApiError(400, "order is required");
+//     }
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//       throw new ApiError(400, "Order does not exist");
+//     }
+//     if (order.isPaid) {
+//       throw new ApiError(400, "Order is already paid");
+//     }
+//     const paymentIntent = await stripe.paymentIntents.create(
+//       {
+//         amount: order.totalAmount * 100,
+//         currency: "usd",
+//         automatic_payment_methods: {
+//           enabled: true,
+//           allow_redirects: "never",
+//         },
+//         metadata: {
+//           orderId: order._id.toString(),
+//           userId: req.user._id.toString(),
+//         },
+//       },
+//       {
+//         idempotencyKey: crypto.randomUUID(),
+//       },
+//     );
+
+//     order.paymentIntentId = paymentIntent.id;
+//     await order.save();
+//     return res.status(200).json(
+//       new ApiResponse(
+//         200,
+//         {
+//           clientSecret: paymentIntent.client_secret,
+//         },
+//         "Payment intent created successfully",
+//       ),
+//     );
+//   },
+// );
+
+export const createPaymentSession = asyncHandler(
   async (req: Request, res: Response) => {
     const { orderId } = req.params;
+
     if (!orderId) {
-      throw new ApiError(400, "order is required");
+      throw new ApiError(400, "Order id is required");
     }
+
     const order = await Order.findById(orderId);
+
     if (!order) {
-      throw new ApiError(400, "Order does not exist");
+      throw new ApiError(404, "Order not found");
     }
+
     if (order.isPaid) {
       throw new ApiError(400, "Order is already paid");
     }
-    const paymentIntent = await stripe.paymentIntents.create(
-      {
-        amount: order.totalAmount * 100,
-        currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: "never",
+
+    const course = await Course.findById(order.course);
+
+    if (!course) {
+      throw new ApiError(404, "Course not found");
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: course.title,
+              description: course.description,
+            },
+            unit_amount: Math.round(order.totalAmount * 100),
+          },
+          quantity: 1,
         },
+      ],
+
+      payment_intent_data: {
         metadata: {
           orderId: order._id.toString(),
           userId: req.user._id.toString(),
+          courseId: course._id.toString(),
         },
       },
-      {
-        idempotencyKey: crypto.randomUUID(),
-      },
-    );
-    await stripe.paymentIntents.confirm(paymentIntent.id, {
-      payment_method: "pm_card_visa",
+
+      success_url: `${process.env.CLIENT_URL}/payment/success?orderId=${order._id}&courseId=${course._id}`,
+      cancel_url: `${process.env.CLIENT_URL}/checkout/${order._id}`,
     });
-    order.paymentIntentId = paymentIntent.id;
+
+    order.checkoutSessionId = session.id;
     await order.save();
+
     return res.status(200).json(
       new ApiResponse(
         200,
         {
-          clientSecret: paymentIntent.client_secret,
+          url: session.url,
         },
-        "Payment intent created successfully",
+        "Checkout session created successfully",
       ),
     );
   },
 );
 
-//admin only
-
-export const getPaymentById = asyncHandler(
+export const getPaymentByOrderId = asyncHandler(
   async (req: Request, res: Response) => {
-    const { paymentId } = req.params;
-    if (!paymentId) {
-      throw new ApiError(400, "paymentId is required");
+    const orderId = req.params.orderId as string;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      throw new ApiError(400, "Invalid order id");
     }
+
     const [payment] = await Payment.aggregate([
       {
         $match: {
-          _id: paymentId,
+          orderId: new mongoose.Types.ObjectId(orderId),
         },
       },
       ...commonPaymentAggregation(),
     ]);
+
+    if (!payment) {
+      throw new ApiError(404, "Payment not found");
+    }
+
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, payment || [], "Successfully get payment by id"),
-      );
+      .json(new ApiResponse(200, payment, "Payment fetched successfully"));
   },
 );
 export const getAllPayment = asyncHandler(

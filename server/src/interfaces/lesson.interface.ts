@@ -9,8 +9,11 @@ export interface IVideo {
 export interface ILesson extends Document {
   title: string;
   description: string;
+  body:string;
   order: number;
   video: IVideo;
+  instructor:Types.ObjectId;
   course: Types.ObjectId;
+  isPublished:boolean;
   createdBy: Types.ObjectId;
 }

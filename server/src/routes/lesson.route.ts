@@ -9,6 +9,7 @@ import {
 } from "../controllers/lesson.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
+  getLoggedInUserOrIgnore,
   verifyEnrollment,
   verifyJWT,
   verifyRoles,
@@ -38,7 +39,7 @@ router
   .get(verifyJWT, getLessonById);
 router
   .route("/:courseId")
-  .get(verifyJWT, getAllCourseLessons);
+  .get(getLoggedInUserOrIgnore, getAllCourseLessons);
   router
   .route("/update-video/:lessonId")
   .patch(

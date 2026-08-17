@@ -33,7 +33,6 @@ export const stripeWebhook = asyncHandler(
     }
     switch (event.type) {
       case "checkout.session.completed": {
-        console.log("reached");
 
         const checkoutSession = event.data.object;
 

@@ -4,29 +4,42 @@ export const createLessonSchema = z.object({
   title: z
     .string()
     .min(4, "title must be 4 characters")
-    .max(32, "description must be 32 characters"),
+    .max(128, "title must be 128 characters"),
   description: z
     .string()
-    .min(4, "title must be 4 characters")
-    .max(10000, "description must be 10000 characters"),
-  order: z.number().positive({ error: "lesson order must be positive" }),
-  videUrls: z.array(z.string()),
+    .min(4, "description must be 4 characters")
+    .max(300, "description must be 300 characters"),
+  body: z
+    .string()
+    .min(4, "body must be 4 characters")
+    .max(50000, "body must be 50,000 characters"),
+    instructor: z.string().min(1, "Instructor is required"),
+  order: z.coerce
+  .number()
+  .positive({ error: "lesson order must be positive" }),
+  isPublished:z.coerce.boolean()
 });
 
 export const updateLessonSchema = z.object({
   title: z
     .string()
     .min(4, "title must be 4 characters")
-    .max(32, "title must be 64 characters")
+    .max(128, "title must be 128 characters")
     .optional(),
   description: z
     .string()
-    .min(4, "title must be 4 characters")
-    .max(10000, "description must be 10000 characters")
+    .min(4, "description must be 4 characters")
+    .max(300, "description must be 300 characters")
     .optional(),
-  order: z
+  body: z
+    .string()
+    .min(4, "body must be 4 characters")
+    .max(50000, "body must be 50,000 characters")
+    .optional(),
+     instructor: z.string().min(1, "Instructor is required").optional(),
+  order: z.coerce
     .number()
     .positive({ error: "lesson order must be positive" })
     .optional(),
-  videUrls: z.array(z.string()).optional(),
+     isPublished:z.coerce.boolean().optional()
 });

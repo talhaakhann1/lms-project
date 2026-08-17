@@ -6,11 +6,11 @@ const reviewSchema = new Schema<IReview>({
     type: String,
     required:true
   },
-  userId: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
-  courseId: {
+  course: {
     type: Schema.Types.ObjectId,
     ref: "Course",
   },

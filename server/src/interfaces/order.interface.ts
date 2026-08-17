@@ -7,5 +7,5 @@ export interface IOrder{
     status:OrderStatus,
     totalAmount:number,
     isPaid:boolean
-    paymentIntentId:string
+    checkoutSessionId :string
 }

@@ -1,36 +1,54 @@
 import mongoose, { Model, Schema } from "mongoose";
 import type { ICourse } from "../interfaces/course.interface.js";
 import type { ILessonProgress } from "../interfaces/lessonProgress.interface.js";
-;
-
 const lessonProgressSchema = new Schema<ILessonProgress>(
-  { 
-    user: { type: Schema.Types.ObjectId, ref: "User" },
-    course: { type: Schema.Types.ObjectId, ref: "Course" },
-    lesson: { type: Schema.Types.ObjectId, ref: "Lesson" },
-    completed:{
-        type:Boolean,
-        default:false
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", index: true },
+    course: { type: Schema.Types.ObjectId, ref: "Course", index: true },
+    totalLessons: {
+      type: Number,
+      required: true,
+      min: 0,
     },
-    watchedSeconds:{
-        type:Number,
-        default:0,
-        required:true
+    completedLessons: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
-    progress:{
-        type:Number,
-        default:0,
-        required:true
+    completedLessonIds: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Lesson",
+        },
+      ],
+      default: [],
     },
-    completeAt:{
-      type:Date
+    progress: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    enrolledAt: {
+      type: Date,
+    },
+    completeAt: {
+      type: Date,
     },
   },
   { timestamps: true },
 );
 
-export const LessonProgress: Model<ILessonProgress> = mongoose.model<ILessonProgress>(
-  "LessonProgress",
-  lessonProgressSchema,
+lessonProgressSchema.index(
+  {
+    user: 1,
+    course: 1,
+  },
+  {
+    unique: true,
+  },
 );
 
+export const LessonProgress: Model<ILessonProgress> =
+  mongoose.model<ILessonProgress>("LessonProgress", lessonProgressSchema);

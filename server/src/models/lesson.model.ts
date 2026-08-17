@@ -12,12 +12,20 @@ const lessonSchema = new Schema<ILesson>(
       type: String,
       required: true,
     },
+    body: {
+      type: String,
+      required: true,
+    },
     order: {
       type: Number,
       unique: true,
       required: true,
     },
-    videos: {
+     instructor: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    video: {
       url: {
         type: String,
         required: true,
@@ -34,6 +42,10 @@ const lessonSchema = new Schema<ILesson>(
     course: {
       type: Schema.Types.ObjectId,
       ref: "Course",
+    },
+    isPublished:{
+      type:Boolean,
+      required:true
     },
     createdBy: {
       type: Schema.Types.ObjectId,
