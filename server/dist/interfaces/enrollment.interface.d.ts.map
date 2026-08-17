@@ -1,0 +1,1 @@
+{"version":3,"file":"enrollment.interface.d.ts","sourceRoot":"","sources":["../../src/interfaces/enrollment.interface.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,KAAK,EAAE,MAAM,UAAU,CAAC;AAEhD,MAAM,WAAW,WAAY,SAAQ,QAAQ;IACzC,IAAI,EAAC,KAAK,CAAC,QAAQ,CAAC;IACpB,MAAM,EAAC,KAAK,CAAC,QAAQ,CAAC;IACtB,UAAU,EAAC,IAAI,CAAC;CACnB"}

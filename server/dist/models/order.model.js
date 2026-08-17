@@ -1,0 +1,31 @@
+import mongoose, { Model, Schema } from "mongoose";
+import { boolean } from "zod";
+import { OrderStatus } from "../types/order.enum.js";
+const OrderSchema = new Schema({
+    course: {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+    },
+    status: {
+        type: String,
+        enum: OrderStatus,
+        default: OrderStatus.PENDING
+    },
+    totalAmount: {
+        type: Number,
+        default: 0
+    },
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
+    checkoutSessionId: {
+        type: String
+    }
+}, { timestamps: true });
+export const Order = mongoose.model("Order", OrderSchema);
+//# sourceMappingURL=order.model.js.map
