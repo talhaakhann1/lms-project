@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, MotionConfig } from "framer-motion";
+import type { Variants } from "framer-motion";
 import {
   Mail,
   Phone,
@@ -15,7 +16,7 @@ import {
   Send,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -36,7 +37,6 @@ import {
 } from "../../../components/ui/select";
 import { showSuccess, showError } from "../../../components/ui/toaster";
 
-// ─── Lightweight field primitives (consistent with CourseForm) ────────────────
 
 function FormItem({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-col gap-1.5">{children}</div>;
@@ -60,8 +60,6 @@ function FormMessage({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
   return <p className="text-xs text-destructive">{children}</p>;
 }
-
-// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const inquiryTypes = [
   { value: "general", label: "General Question" },
@@ -99,9 +97,7 @@ const defaultValues: ContactFormValues = {
   message: "",
 };
 
-// ─── Animation variants ───────────────────────────────────────────────────────
-
-const fadeUp = {
+const fadeUp: Variants =  {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
@@ -109,7 +105,6 @@ const fadeUp = {
 const buttonHover = { scale: 1.02 };
 const buttonTap = { scale: 0.97 };
 
-// ─── Contact info data ──────────────────────────────────────────────────────
 
 const contactDetails = [
   { icon: Mail, label: "Email", value: "support@learnly.com" },
@@ -118,7 +113,6 @@ const contactDetails = [
   { icon: MapPin, label: "Location", value: "Remote-first · San Francisco, CA" },
 ];
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ContactPage() {
   const form = useForm<ContactFormValues>({
@@ -130,7 +124,7 @@ export default function ContactPage() {
 
   async function onSubmit(data: ContactFormValues) {
     try {
-      // Mock submit only — replace with a real API call later
+ 
       await new Promise((resolve) => setTimeout(resolve, 1200));
       console.log("Contact submission:", data);
       showSuccess(
@@ -150,7 +144,7 @@ export default function ContactPage() {
     <MotionConfig reducedMotion="user">
       <main className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-28 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
-          {/* Contact information */}
+       
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -225,7 +219,7 @@ export default function ContactPage() {
 
               <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
                 <CardContent className="flex flex-col gap-5">
-                  {/* Full Name */}
+                
                   <Controller
                     control={form.control}
                     name="fullName"
@@ -243,7 +237,6 @@ export default function ContactPage() {
                     )}
                   />
 
-                  {/* Email */}
                   <Controller
                     control={form.control}
                     name="email"
@@ -262,7 +255,6 @@ export default function ContactPage() {
                     )}
                   />
 
-                  {/* Inquiry Type */}
                   <Controller
                     control={form.control}
                     name="inquiryType"
@@ -286,7 +278,6 @@ export default function ContactPage() {
                     )}
                   />
 
-                  {/* Subject */}
                   <Controller
                     control={form.control}
                     name="subject"
@@ -304,7 +295,6 @@ export default function ContactPage() {
                     )}
                   />
 
-                  {/* Message */}
                   <Controller
                     control={form.control}
                     name="message"
