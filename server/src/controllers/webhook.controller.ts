@@ -34,6 +34,10 @@ export const stripeWebhook = asyncHandler(
       case "checkout.session.completed": {
         const checkoutSession = event.data.object;
 
+          console.log("checkout session metadata:", checkoutSession.metadata);
+  console.log("payment_intent:", checkoutSession.payment_intent);
+  
+
         if (!checkoutSession.payment_intent) {
           return res.sendStatus(200);
         }
