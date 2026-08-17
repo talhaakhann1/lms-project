@@ -13,8 +13,7 @@ import { Lesson } from "../models/lesson.model.js";
 
 export const stripeWebhook = asyncHandler(
   async (req: Request, res: Response) => {
-    console.log("reached");
-    
+
     const signature = req.headers["stripe-signature"];
 
     if (!signature || Array.isArray(signature)) {
@@ -32,12 +31,19 @@ export const stripeWebhook = asyncHandler(
     } catch (error) {
       return res.status(400).send(`Webhook Error: ${error}`);
     }
-
     switch (event.type) {
-      case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object;
+      case "checkout.session.completed": {
+        console.log("reached");
+
+        const checkoutSession = event.data.object;
+
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+          checkoutSession.payment_intent as string,
+        );
 
         const { orderId, userId } = paymentIntent.metadata;
+
+        console.log(paymentIntent.metadata);
 
         if (!orderId || !userId) {
           throw new ApiError(400, "Missing metadata");
@@ -47,7 +53,7 @@ export const stripeWebhook = asyncHandler(
 
         try {
           await session.withTransaction(async () => {
-            // Prevent duplicate webhook processing
+            
             const existingPayment = await Payment.findOne({
               transactionId: paymentIntent.id,
             }).session(session);
@@ -56,8 +62,11 @@ export const stripeWebhook = asyncHandler(
               return;
             }
 
-            const order = await Order.findByIdAndUpdate(
-              orderId,
+            const order = await Order.findOneAndUpdate(
+              {
+                _id: orderId,
+                user: userId,
+              },
               {
                 $set: {
                   isPaid: true,
@@ -74,6 +83,18 @@ export const stripeWebhook = asyncHandler(
               throw new ApiError(404, "Order not found");
             }
 
+            if (paymentIntent.amount !== order.totalAmount * 100) {
+              throw new ApiError(400, "Payment amount mismatch");
+            }
+
+            const existing = await Payment.findOne({
+              transactionId: paymentIntent.id,
+            });
+
+            if (existing) {
+              return res.sendStatus(200);
+            }
+
             await Payment.create(
               [
                 {
@@ -82,6 +103,7 @@ export const stripeWebhook = asyncHandler(
                   amount: paymentIntent.amount / 100,
                   transactionId: paymentIntent.id,
                   status: PaymentStatus.SUCCESS,
+                  paidAt: new Date(),
                 },
               ],
               { session },
@@ -92,19 +114,28 @@ export const stripeWebhook = asyncHandler(
               course: order.course,
             }).session(session);
 
-            
             if (!alreadyEnrolled) {
-              const totalLessons=await Lesson.countDocuments({
-                course:order.course
-              }).session(session)
+              const totalLessons = await Lesson.countDocuments({
+                course: order.course,
+              }).session(session);
               await Enrollment.create(
                 [
                   {
                     user: userId,
                     course: order.course,
+                    enrolledAt: new Date(),
+                  },
+                ],
+                { session },
+              );
+              await LessonProgress.create(
+                [
+                  {
+                    user: userId,
+                    course: order.course,
                     totalLessons,
-                    completedLessons:0,
-                    progress:0,
+                    completedLessons: 0,
+                    progress: 0,
                     enrolledAt: new Date(),
                   },
                 ],
@@ -114,34 +145,17 @@ export const stripeWebhook = asyncHandler(
           });
 
           return res.sendStatus(200);
-        } finally {
+          
+        } catch(error:unknown){
+          console.log("webhook",error);
+      
+        }
+        finally {
           await session.endSession();
         }
       }
 
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object;
 
-        const { orderId, userId } = paymentIntent.metadata;
-
-        if (!orderId || !userId) {
-          throw new ApiError(400, "Missing metadata");
-        }
-
-        await Order.findByIdAndUpdate(orderId, {
-          status: OrderStatus.FAILED,
-        });
-
-        await Payment.create({
-          orderId,
-          user: userId,
-          amount: paymentIntent.amount / 100,
-          transactionId: paymentIntent.id,
-          status: PaymentStatus.FAILED,
-        });
-
-        return res.sendStatus(200);
-      }
 
       default:
         return res.sendStatus(200);
