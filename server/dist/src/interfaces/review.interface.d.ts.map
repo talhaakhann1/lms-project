@@ -1,0 +1,1 @@
+{"version":3,"file":"review.interface.d.ts","sourceRoot":"","sources":["../../../src/interfaces/review.interface.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,KAAK,EAAE,MAAM,UAAU,CAAC;AAEhD,MAAM,WAAW,OAAQ,SAAQ,QAAQ;IACrC,OAAO,EAAC,MAAM,CAAC;IACf,IAAI,EAAC,KAAK,CAAC,QAAQ,CAAC;IACpB,MAAM,EAAC,KAAK,CAAC,QAAQ,CAAC;CACzB"}
