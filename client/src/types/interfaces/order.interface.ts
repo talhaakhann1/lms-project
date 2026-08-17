@@ -1,4 +1,3 @@
-import type { Types } from "mongoose";
 import type { OrderStatus } from "../enums/order.enum";
 import { Course } from "./course.interface.js";
 import { User } from "@/src/Schemas/user.schema.js";
