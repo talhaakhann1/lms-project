@@ -1,7 +1,6 @@
 import type { UploadApiResponse } from "cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
-import { ZodNull } from "zod/v3";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -25,28 +24,33 @@ export const uploadAtCloudinary = async (
     console.log("response",response);
     
 
-   await fs.unlink(localPath);
     console.log("reach")
 
     return response;
   } catch (error: unknown) {
-    await fs.unlink(localPath);
-
+    console.error("Cloudinary upload failed:", error);
     return null;
+  } finally {
+    try {
+      await fs.unlink(localPath);
+    } catch {
+      return null
+    }
   }
 };
 
 export const deleteAtCloudinary = async (
   publicId: string,
   resourceType: "image" | "video" = "image",
-): Promise<UploadApiResponse | null> => {
+) => {
   try {
     if (!publicId) return null;
-    const response = await cloudinary.uploader.destroy(publicId, {
+
+    return await cloudinary.uploader.destroy(publicId, {
       resource_type: resourceType,
     });
-    return response;
-  } catch (error: unknown) {
+  } catch (error) {
+    console.error("Cloudinary delete failed:", error);
     return null;
   }
 };

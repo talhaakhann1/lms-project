@@ -18,14 +18,15 @@ import orderRouter from "./routes/order.route.js"
 import adminRouter from "./routes/admin.route.js"
 
 
-
-
 const app=express()
+
+console.log("CORS_ORIGIN =", process.env.CORS_ORIGIN);
 
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.CORS_ORIGIN,
 ].filter((origin): origin is string => Boolean(origin));
+
 
 
 app.use(
