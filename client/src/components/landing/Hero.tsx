@@ -195,10 +195,10 @@ export function Hero() {
               <Image
                 src={heroImage}
                 alt="Course dashboard showing enrolled courses, lesson progress, and completion certificates"
-                width={960}
+                width={1080}
                 height={720}
                 priority
-                sizes="(min-width: 1024px) 40vw, 100vw"
+                sizes="(min-width: 1024px) 800px, 100vw"
                 className="h-auto w-full rounded-xl"
               />
             </div>

@@ -76,7 +76,7 @@ const sectionRevealVariants: Variants = {
       variants={fadeUpVariants}
       className="mb-4 text-center text-base text-muted-foreground md:text-lg"
     >
-      Discover the talented professional who will guide your musical journey
+       Meet the experienced instructor who will guide you through your learning journey
     </motion.p>
 
     <motion.div

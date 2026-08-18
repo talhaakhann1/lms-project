@@ -67,9 +67,9 @@ const testimonials: Testimonial[] = [
 
 export function TestimonialsSection() {
     return (
-        <section id="testimonials" className="relative mx-auto w-full max-w-6xl border-x">
+        <section id="testimonials" className="relative mx-auto w-full max-w-6xl">
             <motion.div
-                className="mx-auto mb-10 flex max-w-sm flex-col items-center justify-center gap-4 px-6 pt-20"
+                className="mx-auto mb-10 flex max-w-md flex-col items-center justify-center gap-4 px-6 pt-20"
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
@@ -86,7 +86,7 @@ export function TestimonialsSection() {
                 </motion.div>
 
                 <motion.h2
-                    className="font-bold text-3xl tracking-tighter lg:text-4xl"
+                    className="font-bold text-3xl tracking-tight lg:text-4xl"
                     variants={itemVariants}
                 >
                     What our learners say
