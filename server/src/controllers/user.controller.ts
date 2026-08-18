@@ -143,11 +143,11 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(404, "User not found");
   }
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict" as const,
-  };
+ const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "none" as const,
+};
 
   return res
     .status(200)
