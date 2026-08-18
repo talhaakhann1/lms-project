@@ -1,5 +1,6 @@
-import { User } from "@/src/Schemas/user.schema";
+
 import { Course } from "./course.interface";
+import { User } from "./user.interface";
 
 
 
