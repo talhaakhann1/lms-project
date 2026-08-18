@@ -171,6 +171,12 @@ export const createPaymentSession = asyncHandler(
       mode: "payment",
       payment_method_types: ["card"],
 
+      metadata: {
+        orderId: order._id.toString(),
+        userId: req.user._id.toString(),
+        courseId: course._id.toString(),
+      },
+
       line_items: [
         {
           price_data: {
