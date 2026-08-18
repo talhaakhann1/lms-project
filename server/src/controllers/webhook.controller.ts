@@ -34,14 +34,12 @@ export const stripeWebhook = asyncHandler(
       case "checkout.session.completed": {
         const checkoutSession = event.data.object;
 
-          console.log("checkout session metadata:", checkoutSession.metadata);
-  console.log("payment_intent:", checkoutSession.payment_intent);
-  
+        console.log("checkout session metadata:", checkoutSession.metadata);
+        console.log("payment_intent:", checkoutSession.payment_intent);
 
         if (!checkoutSession.payment_intent) {
           return res.sendStatus(200);
         }
-
 
         const paymentIntent = await stripe.paymentIntents.retrieve(
           checkoutSession.payment_intent as string,
@@ -72,8 +70,8 @@ export const stripeWebhook = asyncHandler(
 
             const order = await Order.findOneAndUpdate(
               {
-                _id: orderId,
-                user: userId,
+                _id: new mongoose.Types.ObjectId(orderId),
+                user: new mongoose.Types.ObjectId(userId),
               },
               {
                 $set: {
@@ -91,7 +89,7 @@ export const stripeWebhook = asyncHandler(
               throw new ApiError(404, "Order not found");
             }
 
-            if (paymentIntent.amount !== order.totalAmount * 100) {
+            if (paymentIntent.amount !== Math.round(order.totalAmount * 100)) {
               throw new ApiError(400, "Payment amount mismatch");
             }
 
