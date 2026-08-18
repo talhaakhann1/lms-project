@@ -27,13 +27,11 @@ export default function PaymentSuccessPage() {
       const payment = await paymentService.getByOrderId(orderId as string);
       setPayment(payment);
       setIsLoading(false);
-      return; // ✅ Success — stop retrying
+      return;
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
       const status = axiosError.response?.status;
 
-      // Only retry on 404 (webhook not processed yet)
-      // Stop immediately on other errors (400, 500, etc.)
       if (status === 404 && attempt < MAX_RETRIES) {
         console.log(`Payment not ready yet, retrying... (${attempt}/${MAX_RETRIES})`);
         await new Promise((resolve) => setTimeout(resolve, DELAY_MS));

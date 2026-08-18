@@ -25,10 +25,10 @@ import { ReviewFormValues } from "@/src/components/review/CreateReviewModel";
 export default function CourseDetailsPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
+  const [reviewLoading, setReviewLoading] = useState<boolean>(false)
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [actionLoading, setActionLoading] = useState<boolean>(false)
-  const [reviewLoading, setReviewLoading] = useState<boolean>(false)
   const params = useParams();
   const courseId = params.courseId as string
   const router = useRouter()
@@ -57,43 +57,6 @@ export default function CourseDetailsPage() {
   function handleEdit() {
     router.push(`/admin/courses/${courseId}/edit`)
   }
-  const handleCreateReview = async (data: ReviewFormValues, courseId: string) => {
-    try {
-      await reviewService.create(courseId, data)
-      setReviewLoading(true)
-
-      await fetchReviews(courseId)
-
-      showSuccess("Added the review")
-
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-
-      const errorMessage =
-        axiosError.response?.data.message ?? "Something went wrong";
-
-      console.error(errorMessage);
-
-      showError("Error in creating course", errorMessage);
-    } finally {
-      setReviewLoading(false)
-    }
-  }
-  const handleDeleteReview = async (reviewId: string) => {
-    try {
-      await reviewService.delete(reviewId)
-      await fetchReviews(courseId);
-      showSuccess("Deleted the review")
-
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-
-      const errorMessage =
-        axiosError.response?.data.message ?? "Something went wrong";
-
-      showError("Error in deleting review", errorMessage);
-    }
-  }
   const fetchCourseData = async (courseId: string) => {
     setIsLoading(true)
     try {
@@ -118,24 +81,7 @@ export default function CourseDetailsPage() {
       setIsLoading(false)
     }
   }
-  const fetchReviews = async (courseId: string) => {
-    setIsLoading(true)
-    try {
-      const reviews = await reviewService.getCourseReviews(courseId)
-      setReviews(reviews);
-
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-
-      const errorMessage =
-        axiosError.response?.data.message ?? "Something went wrong";
-
-      showError("Error in fetching review",errorMessage);
-    }finally{
-      setIsLoading(false)
-    }
-  }
-
+  
   useEffect(() => {
     fetchCourseData(courseId)
   }, [courseId])
@@ -168,8 +114,6 @@ export default function CourseDetailsPage() {
         <CourseInstructor instructor={course?.instructor} />
 
         <CourseReviews
-          onCreateReview={handleCreateReview}
-          onDeleteReview={handleDeleteReview}
           loading={reviewLoading}
           user={user}
           course={course}

@@ -86,7 +86,7 @@ export default function CourseDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex  mt-24 min-h-screen items-center justify-center">
         <CourseDetailLoading />
       </div>
     )
@@ -110,6 +110,7 @@ export default function CourseDetailsPage() {
         <CourseInstructor instructor={course?.instructor} />
 
         <CourseReviews
+        course={course}
         loading={isLoading}
           reviews={reviews}
         />
