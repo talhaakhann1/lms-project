@@ -13,7 +13,8 @@ export const Logo = ({ className, ...props }: LogoProps) => (
       src="/logo/edvra-dark.png"
       alt="Edvra"
       width={200}
-      height={150}
+      height={50}
+      priority
       className={`block h-auto w-auto dark:hidden ${className ?? ""}`}
       {...props}
     />
@@ -23,7 +24,8 @@ export const Logo = ({ className, ...props }: LogoProps) => (
       src="/logo/edvra-light.png"
       alt="Edvra"
       width={200}
-      height={150}
+      height={50}
+      priority
       className={`hidden h-auto w-auto dark:block ${className ?? ""}`}
       {...props}
     />

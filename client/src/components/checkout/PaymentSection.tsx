@@ -23,8 +23,8 @@ export function PaymentSection({ orderId,totalAmount }: PaymentSectionProps) {
 const [loading, setLoading] = useState(false);
 
  const handleClick = async () => {
+   setLoading(true);
     try {
-      setLoading(true);
 
       const res = await paymentService.createPaymentSession(orderId as string);
 

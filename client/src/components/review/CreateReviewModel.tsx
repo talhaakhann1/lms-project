@@ -18,18 +18,6 @@ import {
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Switch } from "../ui/switch";
-import { createCourseSchema } from "@/src/Schemas/course.schema";
-import { User } from "@/src/Schemas/user.schema";
-import { Instructor } from "@/src/types/interfaces/user.interface";
-import { courseService } from "@/src/services/course.service";
 import { showError, showSuccess } from "../ui/toaster";
 import { AxiosError } from "axios";
 import ApiResponse from "@/src/utils/ApiResponse";

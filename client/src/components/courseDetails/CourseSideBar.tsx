@@ -113,6 +113,7 @@ export function CourseSidebar({
               src={course.thumbnail.url}
               alt={`${course.title} course thumbnail`}
               fill
+               priority
               sizes="(min-width: 1024px) 320px, 100vw"
               className="object-cover"
             />

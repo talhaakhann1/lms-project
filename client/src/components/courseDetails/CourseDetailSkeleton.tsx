@@ -3,28 +3,38 @@ import { Card, CardContent, CardHeader } from "../ui/card";
 
 function CourseHeroSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
-      {/* Breadcrumb */}
-      {/* Two-column hero */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="flex flex-col gap-4">
-          <Skeleton className="h-6 w-24 rounded-full" />
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-4/5" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-5 w-full max-w-[65ch]" />
-            <Skeleton className="h-5 w-3/4 max-w-[65ch]" />
-          </div>
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-        <Skeleton className="aspect-video w-full rounded-xl" />
+<div className="flex flex-col gap-5">
+  {/* Category */}
+  <Skeleton className="h-6 w-24 rounded-full" />
+
+  {/* Title + actions + tagline + instructor */}
+  <div className="flex flex-col gap-3">
+    {/* Title row */}
+    <div className="flex items-center justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-9 w-full max-w-3xl lg:h-10" />
+      </div>
+
+      {/* Admin actions */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
       </div>
     </div>
+
+    {/* Tagline */}
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-5 w-full max-w-[65ch]" />
+      <Skeleton className="h-5 w-4/5 max-w-[65ch]" />
+    </div>
+
+    {/* Instructor */}
+    <Skeleton className="h-4 w-40" />
+  </div>
+
+  {/* Course thumbnail */}
+  <Skeleton className="aspect-video w-full rounded-xl" />
+</div>
   );
 }
 
@@ -184,7 +194,6 @@ function CourseSidebarSkeleton() {
           <Skeleton className="h-11 w-full rounded-md" />
           <div className="flex items-center gap-2">
             <Skeleton className="h-9 flex-1 rounded-md" />
-            <Skeleton className="h-9 flex-1 rounded-md" />
           </div>
         </CardContent>
       </Card>
@@ -194,7 +203,7 @@ function CourseSidebarSkeleton() {
 
 export default function CourseDetailLoading() {
   return (
-   <div className="mx-auto min-w-0 w-full mt-24 grid max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-[1fr_360px] lg:items-start lg:px-8 lg:py-5">
+   <div className="mx-auto min-w-0 w-full grid max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-[1fr_360px] lg:items-start lg:px-8 lg:py-5">
   <div className="flex flex-col gap-8">
         <CourseHeroSkeleton />
         <CourseDescriptionSkeleton />

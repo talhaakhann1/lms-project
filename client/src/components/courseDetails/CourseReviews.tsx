@@ -18,13 +18,13 @@ import { ReviewCardSkeleton } from "../review/ReviewCardSkeleton";
 
 
 export interface CourseReviewsProps {
-
+  user?: User | null
   course?: Course | null
   loading?: boolean
   reviews?: Review[];
-  user?: User | null;
+  role?: string | null;
   onCreateReview?: (data: ReviewFormValues, courseId: string) => Promise<void>;
-  onDeleteReview?: (courseId: string) => Promise<void>
+  onDeleteReview?: (reviewId: string) => Promise<void>
 }
 
 
@@ -79,11 +79,11 @@ const itemVariants = {
 
 
 
-export function CourseReviews({ reviews, course, user, onCreateReview, onDeleteReview, loading }: CourseReviewsProps) {
-  const role = user?.role
+export function CourseReviews({ reviews, course, user, role, onCreateReview, onDeleteReview, loading }: CourseReviewsProps) {
   const handleDeleteReview = async (reviewId: string) => {
     await onDeleteReview?.(reviewId)
   }
+
   const [reviewOpen, setReviewOpen] = React.useState(false);
   return (
     <section>
@@ -134,23 +134,35 @@ export function CourseReviews({ reviews, course, user, onCreateReview, onDeleteR
                 reviews?.map((review) => (
                   <motion.div key={review.id} variants={itemVariants}>
                     <Card className="border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md">
-                      <CardContent className="flex flex-col gap-3 p-5">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border border-border">
+                      <CardContent className="flex flex-col gap-3 ">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 shrink-0 border border-border">
                             {review.user?.avatar ? (
-                              <AvatarImage src={review.user?.avatar.url} alt={`${review.user.fullName} avatar`} />
+                              <AvatarImage
+                                src={review.user.avatar.url}
+                                alt={`${review.user.fullName} avatar`}
+                              />
                             ) : null}
+
                             <AvatarFallback className="bg-secondary text-xs text-secondary-foreground">
-                              {getInitials(review.user?.fullName as string)}
+                              {getInitials(review.user?.fullName ?? "")}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col">
+
+                          <div className="min-w-0 flex-1">
                             <span className="text-sm font-semibold text-foreground">
                               {review.user?.fullName}
                             </span>
-                            <span className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</span>
+
+                            <span className="block text-xs text-muted-foreground">
+                              {formatDate(review.createdAt)}
+                            </span>
+
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                              {review.comment}
+                            </p>
                           </div>
-                          {review.user?._id === user?.id && (
+                          {review.user?.id === user?.id && (
                             <DropdownMenu>
                               <DropdownMenuTrigger
                                 render={
@@ -178,7 +190,7 @@ export function CourseReviews({ reviews, course, user, onCreateReview, onDeleteR
                           )}
                         </div>
 
-                        <p className="text-sm leading-6 text-muted-foreground">{review.comment}</p>
+
                       </CardContent>
                     </Card>
                   </motion.div>
