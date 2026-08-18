@@ -131,8 +131,8 @@ export function ReviewCreateForm({ onSubmit }: ReviewCreateFormProps) {
                 <FormItem>
                   <FormLabel htmlFor="description">Whats your comment</FormLabel>
                   <Textarea
-                    id="description"
-                    placeholder="What will students learn in this course?"
+                    id="comment"
+                   placeholder="Share your experience with this course..."
                     className="min-h-28 resize-y"
                     {...field}
                   />
@@ -150,7 +150,7 @@ export function ReviewCreateForm({ onSubmit }: ReviewCreateFormProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" strokeWidth={1.75} />
-                    Creating…
+                    Posting...
                   </>
                 ) : (
                   <>
