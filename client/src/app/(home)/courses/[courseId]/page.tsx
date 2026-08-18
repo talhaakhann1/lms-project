@@ -86,7 +86,7 @@ export default function CourseDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex  mt-24 min-h-screen items-center justify-center">
+      <div className="flex mt-24 min-h-screen items-center justify-center">
         <CourseDetailLoading />
       </div>
     )
