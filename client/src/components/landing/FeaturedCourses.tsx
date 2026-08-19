@@ -8,6 +8,13 @@ import { CourseCard } from "../../components/cards/CourseCard";
 import { Course } from "@/src/types/interfaces/course.interface";
 import Link from "next/link";
 import { CourseCardSkeleton, CourseCardSkeletonGrid } from "../cards/CourseCardSkeleton";
+import { useState } from "react";
+import { courseService } from "@/src/services/course.service";
+import { useEffect } from "react";
+import { useAppSelector } from "@/src/store/hook";
+import { showError } from "@/src/components/ui/toaster";
+import { AxiosError } from "axios";
+import ApiResponse from "@/src/utils/ApiResponse";
 
 
 
@@ -29,13 +36,34 @@ const itemVariants = {
   },
 };
 
-interface FeaturedCoursesProps {
-  courses?: Course[]
-  role?: string | null
-  isLoading?: boolean;
-}
 
-export function FeaturedCourses({ courses, isLoading, role }: FeaturedCoursesProps) {
+export function FeaturedCourses() {
+   const [isLoading, setIsLoading] = useState<boolean>(false)
+      const [courses, setCourses] = useState<Course[]>([])
+      const user=useAppSelector((state)=>state.auth.user)
+      const userRole=user?.role
+    
+      const fetchAllCourses = async () => {
+          setIsLoading(true)
+          try {
+              const res = await courseService.getAll()
+             
+             setCourses(res);
+          } catch (error) {
+            const axiosError = error as AxiosError<ApiResponse<unknown>>;
+            
+                const errorMessage =
+                  axiosError.response?.data.message ?? "Something went wrong";
+            
+            
+                showError("Error in fetching courses", errorMessage);
+          } finally {
+              setIsLoading(false)
+          }
+      }
+      useEffect(() => {
+          fetchAllCourses()
+      }, [])
   return (
     <section
       id="courses"
@@ -110,7 +138,7 @@ export function FeaturedCourses({ courses, isLoading, role }: FeaturedCoursesPro
               >
                 <CourseCard
                   course={course}
-                  role={role}
+                  role={userRole}
                 />
               </motion.div>
             ))}

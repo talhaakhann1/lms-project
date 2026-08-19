@@ -73,7 +73,7 @@ export function Hero() {
     >
       <div
         aria-hidden="true"
-       className="pointer-events-none absolute rounded-bl-2xl inset-y-0 top-12 right-0 hidden w-1/3 bg-footer lg:block"
+       className="pointer-events-none absolute inset-y-0 top-12 right-0 hidden w-1/3 bg-footer lg:block"
       />
 
       <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-20 lg:px-8 lg:py-24 xl:px-10">
@@ -198,6 +198,7 @@ export function Hero() {
                 width={1080}
                 height={720}
                 priority
+                 fetchPriority="high"  
                 sizes="(min-width: 1024px) 800px, 100vw"
                 className="h-auto w-full rounded-xl"
               />
