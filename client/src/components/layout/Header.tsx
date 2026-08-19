@@ -71,7 +71,7 @@ export function Header() {
         "border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50"
       )}
     >
-      <nav className=" mx-auto flex h-14 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between
+      <nav className=" mx-auto flex h-16 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between
     px-4 sm:px-6
     md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal">
         {/* Left */}

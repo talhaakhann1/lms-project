@@ -7,7 +7,7 @@ import { Button } from "../../ui/button"
 import { Card, CardContent } from "../../ui/card"
 import { Progress } from "../../ui/progress"
 import { StatWidgetProps } from "./StatsWidget";
-import heroImage from "@/assets/hero-dashboard2 (2).png"
+import heroImage from "@/public/images/illustrations/hero-dashboard.webp"
 
 interface EnrolledCourse {
   id: string;
@@ -105,7 +105,7 @@ export function DashboardHome({
             </p>
           </div>
 
-          <div className="mt-20 flex flex-col items-start gap-4">
+          <div className="mt-10 lg:mt-20 flex flex-col items-start gap-4">
             <span className="text-sm font-medium text-primary">
               {hasEnrolled ? "Continue your journey" : "Get started"}
             </span>

@@ -14,7 +14,7 @@ import {
 
 import { Button } from "../../components/ui/button"
 import { useAppSelector } from "@/src/store/hook"
-import heroImage from "@/assets/hero-home.png";
+import heroImage from "@/public/images/illustrations/hero-home.webp";
 
 
 interface TrustIndicator {

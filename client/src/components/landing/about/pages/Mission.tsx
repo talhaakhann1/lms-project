@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import missonImage from "@/public/images/illustrations/misson-illustration2.png"
+import missonImage from "@/public/images/illustrations/misson-illustration.webp"
 
 export interface MissionProps {
   eyebrow?: string;
