@@ -88,7 +88,7 @@ export default function CourseDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-[1fr_360px] lg:items-start lg:px-8 lg:py-16">
+       <div className="flex min-h-screen items-center justify-center">
         <CourseDetailLoading />
       </div>
     )
