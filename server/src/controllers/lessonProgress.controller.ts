@@ -57,17 +57,14 @@ export const completeLesson = asyncHandler(
 
         progress.completedLessonIds.push(lesson._id)
 
-
-        // 3. Prevent completing beyond total lessons
+     
         if (progress.completedLessons >= progress.totalLessons) {
           return;
         }
 
-        // 4. Increment completed lessons
          progress.completedLessons =
           progress.completedLessonIds.length;
 
-        // 5. Calculate progress
         progress.progress =
           progress.totalLessons === 0
             ? 0
@@ -75,7 +72,6 @@ export const completeLesson = asyncHandler(
                 (progress.completedLessons / progress.totalLessons) * 100,
               );
 
-        // 6. Course completed
         if (progress.completedLessons >= progress.totalLessons) {
           progress.completedLessons = progress.totalLessons;
 
