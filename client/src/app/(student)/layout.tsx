@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "@/src/app/globals.css"
 import { AppShell } from "../../components/app-shell";
 import ProtectedRoute from "@/src/components/auth/ProtectedRoute";
+import { SidebarProvider } from "@/src/components/ui/sidebar";
 
 export const metadata: Metadata = {
   title: "My Learning | Edvra",
@@ -21,7 +22,7 @@ export default function RootLayout({
         <ProtectedRoute
           allowedRoles={["student"]}
           fallback="/admin"
-        >
+          >
         
           <AppShell variant="student">
             {children}
