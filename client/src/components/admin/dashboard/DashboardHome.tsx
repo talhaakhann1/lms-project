@@ -83,7 +83,7 @@ export function DashboardHome({
   const router = useRouter()
   const hasEnrolled = enrolledCourses?.length ?? 0
   return (
-    <div className="flex flex-col gap-14 pb-16 ">
+    <div className="flex flex-col gap-14 pb-16">
     
       <motion.section
         initial="hidden"
@@ -157,17 +157,15 @@ export function DashboardHome({
           </div>
         </div>
 
-       <div className="relative min-h-[420px] w-full overflow-visible rounded-xl bg-background lg:min-h-full">
-          <div className="absolute inset-0 scale-[1.65] translate-y-16">
+       <div className="relative min-h-[420px] w-full rounded-xl bg-background lg:min-h-full ">    
             <Image
               src={heroImage}
               alt="Illustration of a student studying with a laptop and open book"
               fill
               sizes="(min-width: 1024px) 480px, 100vw"
-              className="object-contain"
+              className="object-contain scale-102"
               priority
             />
-          </div>
         </div>
       </motion.section>
 

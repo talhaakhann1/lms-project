@@ -69,11 +69,11 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative overflow-hidden bg-background mt-5"
+      className="relative overflow-hidden bg-background mt-6"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute rounded-l-2xl top-20 bottom-15 right-0 hidden w-1/3  bg-footer lg:block"
+       className="pointer-events-none absolute rounded-bl-2xl inset-y-0 top-12 right-0 hidden w-1/3 bg-footer lg:block"
       />
 
       <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-20 lg:px-8 lg:py-24 xl:px-10">
@@ -191,7 +191,7 @@ export function Hero() {
             variants={previewVariants}
             className="lg:col-span-5 "
           >
-            <div className="overflow-hidden rounded-2xl border border-border bg-background p-2 shadow-md">
+            <div className="overflow-hidden rounded-2xl border border-border bg-background p-2 shadow-sm ">
               <Image
                 src={heroImage}
                 alt="Course dashboard showing enrolled courses, lesson progress, and completion certificates"

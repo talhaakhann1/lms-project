@@ -87,7 +87,7 @@ export const adminNavGroups: SidebarNavGroup[] = [
 
 export const footerNavLinks: SidebarNavItem[] = [
   {
-    title: "Help & Contact Center",
+    title: "Help & Contact",
     url: "/contact",
     icon: (
       <SendIcon data-icon="inline-start" />

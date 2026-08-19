@@ -66,19 +66,21 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 z-50 w-full border-b border-transparent",
+        "fixed top-0 z-50 w-full border-b border-border",
         scrolled &&
         "border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50"
       )}
     >
-      <nav className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6">
+      <nav className=" mx-auto flex h-14 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between
+    px-4 sm:px-6
+    md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal">
         {/* Left */}
         <div className="min-w-0">
           <Link
             href="/"
-            className="inline-flex max-w-full shrink-0 items-center rounded-md p-2 hover:bg-muted dark:hover:bg-muted/50"
+            className="inline-flex p-1"
           >
-            <Logo className="block h-4 max-w-full w-auto" />
+           <Logo className="h-auto w-[130px] md:w-[170px] lg:w-[150px]" />
           </Link>
         </div>
 
@@ -103,8 +105,8 @@ export function Header() {
           <ThemeToggle
             variant="rectangle"
             start="bottom-up"
-            className="size-10 shrink-0 rounded-xl border border-border bg-transparent p-2.5"
-            iconClassName="h-4 w-5"
+            className="size-8 shrink-0 rounded-xl border border-border bg-transparent p-2.5"
+            iconClassName="h-8 w-5"
           />
 
           {user?.isLoggedIn ? (
@@ -148,8 +150,19 @@ export function Header() {
         </div>
 
         {/* Mobile */}
-        <div className="flex justify-end md:hidden">
-          <MobileNav />
+        <div className="flex items-center justify-end gap-2 md:hidden">
+          <ThemeToggle
+            variant="rectangle"
+            start="bottom-up"
+            className="size-8 shrink-0 rounded-xl border border-border bg-transparent p-2.5"
+            iconClassName="h-4 w-5"
+          />
+
+          <MobileNav
+            isLoading={isLoading}
+            onLogout={logoutHandler}
+            isLoggedIn={user.isLoggedIn}
+          />
         </div>
       </nav>
     </header>

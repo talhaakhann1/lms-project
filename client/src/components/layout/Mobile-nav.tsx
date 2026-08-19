@@ -3,10 +3,21 @@ import React from "react";
 import { Button, buttonVariants } from "../../components/ui/button";
 import { Portal, PortalBackdrop } from "../../components/ui/portal";
 import { navLinks } from "../../components/layout/Header";
-import { XIcon, MenuIcon } from "lucide-react";
+import { XIcon, MenuIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export function MobileNav() {
+interface MobileNavProps {
+    onLogout?: () => Promise<void>,
+    isLoading?: boolean | null,
+    isLoggedIn?: boolean | null
+}
+
+
+export function MobileNav({ isLoggedIn, onLogout, isLoading }: MobileNavProps) {
+
+    const handleLogout = async () => {
+        await onLogout?.()
+    }
     const [open, setOpen] = React.useState(false);
 
     return (
@@ -51,10 +62,31 @@ export function MobileNav() {
                             ))}
                         </div>
                         <div className="mt-12 flex flex-col gap-2">
-                            <Button className="height: calc(var(--spacing)*10)" variant="outline">
-                                Sign In
-                            </Button>
-                            <Button className="w-full">Get Started</Button>
+                            {isLoggedIn ? (
+                                <Button onClick={handleLogout} className="w-full">
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Logging out...
+                                        </>
+                                    ) : (
+                                        "Logout"
+                                    )}
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button className="height: calc(var(--spacing)*10)" variant="outline">
+                                        <Link href={"/sign-in"}>
+                                            Sign In
+                                        </Link>
+                                    </Button>
+                                    <Button className="w-full">
+                                        <Link href={"/sign-up"}>
+                                            Get Started
+                                        </Link>
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </Portal>

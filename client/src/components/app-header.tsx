@@ -1,19 +1,34 @@
+"use client"
+
 import { cn } from "@/src/lib/utils";
 import { Button } from "../components/ui/button";
 import { Separator } from "../components/ui/separator";
-import { SidebarTrigger } from "../components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "../components/ui/sidebar";
 import { AppBreadcrumbs } from "../components/app-breadcrumbs";
-import { adminNavGroups,studentNavGroups } from "../components/app-shared";
+import { adminNavLinks, studentNavLinks } from "../components/app-shared";
 import { SearchIcon, BellIcon, HeadsetIcon } from "lucide-react";
 import { ThemeToggle } from "./motion/theme-toggle";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface AppHeaderProps {
-  variant: "admin" | "student";
+	variant: "admin" | "student";
 }
 
 
 export function AppHeader({ variant }: AppHeaderProps) {
+	const pathname = usePathname();
+
+	const navLinks =
+		variant === "admin" ? adminNavLinks : studentNavLinks;
+
+	const activeItem = navLinks.find(
+		(item) =>
+			pathname === item.url ||
+			pathname.startsWith(`${item.url}/`)
+	);
+	const { state, open } = useSidebar()
+	console.log("sidebar:", { state, open })
 	return (
 		<header
 			className={cn(
@@ -21,28 +36,39 @@ export function AppHeader({ variant }: AppHeaderProps) {
 			)}
 		>
 			<div className="flex items-center gap-2">
-				<SidebarTrigger className="md:hidden" />
-				<Separator
-					className="mr-2 data-[orientation=vertical]:h-4 md:hidden"
-					orientation="vertical"
-				/>
-				{/* <AppBreadcrumbs page={activeItem} /> */}
+					<SidebarTrigger className="" />
+					<Separator
+						className="mr-2 data-[orientation=vertical]:h-4 md:hidden"
+						orientation="vertical"
+					/>
+					<AppBreadcrumbs
+						page={
+							activeItem
+								? {
+									title: activeItem.title,
+									icon: activeItem.icon,
+								}
+								: {
+									title: "Dashboard",
+								}
+						}
+					/>
 			</div>
 			<div className="flex items-center gap-2">
 				<ThemeToggle
-                        variant="rectangle"
-                        start="bottom-up"
-                        className="rounded-xl border border-border bg-transparent p-2.5"
-                        iconClassName="h-4 w-5"
-                    />
+					variant="rectangle"
+					start="bottom-up"
+					className="rounded-xl border border-border bg-transparent p-2.5"
+					iconClassName="h-4 w-5"
+				/>
 				<Button aria-label="Search" size="icon" variant="ghost">
 					<SearchIcon
 					/>
 				</Button>
 				<Button aria-label="Support" size="icon" variant="ghost">
 					<Link href={"/contact"}>
-					<HeadsetIcon
-					/>
+						<HeadsetIcon
+						/>
 					</Link>
 				</Button>
 			</div>

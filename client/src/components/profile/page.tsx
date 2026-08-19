@@ -149,9 +149,6 @@ export default function SettingsProfile({
 
       clearErrors("avatar");
 
-      /*
-       * Revoke previous object URL.
-       */
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
       }
@@ -226,10 +223,7 @@ export default function SettingsProfile({
 
     if (!file) return;
 
-    /*
-     * Use the same validation and preview logic
-     * as drag & drop.
-     */
+
     handleAvatarSelect(file);
   };
 
@@ -241,18 +235,7 @@ export default function SettingsProfile({
     try {
       await onSave?.(data);
 
-      showSuccess(
-        "Profile updated",
-        "Your profile has been updated successfully."
-      );
-
-      /*
-       * If your parent/onSave already updates Redux,
-       * this dispatch isn't necessary.
-       *
-       * If your API returns the updated user, you can
-       * dispatch that returned user here instead.
-       */
+  
     } catch (error) {
       const axiosError =
         error as AxiosError<ApiResponse<unknown>>;
@@ -261,9 +244,7 @@ export default function SettingsProfile({
         axiosError.response?.data?.message ??
         "Something went wrong";
 
-      console.error(errorMessage);
-
-      showError("Something went wrong", errorMessage);
+      showError(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -305,7 +286,6 @@ export default function SettingsProfile({
         <CardContent>
           <div className="flex flex-col gap-6">
 
-            {/* Avatar Upload */}
             <div className="flex flex-col gap-4">
               <FieldLabel>Profile Picture</FieldLabel>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -380,7 +360,6 @@ export default function SettingsProfile({
 
             <Separator />
 
-            {/* Basic Information */}
             <div className="flex flex-col gap-4">
               <Controller
                 control={control}

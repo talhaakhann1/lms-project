@@ -14,20 +14,21 @@ export function AppShell({
   variant,
 }: AppShellProps) {
   return (
-   <div className="flex h-svh overflow-hidden">
-  <SidebarProvider className="relative mx-auto h-full w-full lg:border-x">
-    <FullWidthDivider className="top-14 z-60 -translate-y-px" />
+    <div className="flex h-svh overflow-hidden">
+      <SidebarProvider
+      
+       className="relative mx-auto h-full w-full lg:border-x">
+        <FullWidthDivider className="top-14 z-60 -translate-y-px" />
 
-    <AppSidebar variant={variant} />
+        <AppSidebar variant={variant} />
 
-    <SidebarInset className="min-h-0 min-w-0">
-      <AppHeader variant={variant} />
-
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
-        {children}
-      </div>
-    </SidebarInset>
-  </SidebarProvider>
-</div>
+        <SidebarInset className="min-h-0 min-w-0">
+          <AppHeader variant={variant} />
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+            {children}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }
