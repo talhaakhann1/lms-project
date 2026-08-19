@@ -10,21 +10,49 @@ cloudinary.config({
 
 export const uploadAtCloudinary = async (
   localPath: string,
+  options?: {
+    type?: "avatar" | "thumbnail" | "general";
+  },
 ): Promise<UploadApiResponse | null> => {
   try {
     if (!localPath) return null;
 
-    console.log(localPath);
-    
+    const type = options?.type ?? "general";
+
+    const transformation =
+      type === "avatar"
+        ? [
+            {
+              width: 128,
+              height: 128,
+              crop: "fill",
+              gravity: "face",
+              quality: "auto",
+              fetch_format: "auto",
+            },
+          ]
+        : type === "thumbnail"
+          ? [
+              {
+                width: 1200,
+                height: 675,
+                crop: "fill",
+                quality: "auto",
+                fetch_format: "auto",
+              },
+            ]
+          : [
+              {
+                quality: "auto",
+                fetch_format: "auto",
+              },
+            ];
 
     const response = await cloudinary.uploader.upload(localPath, {
       resource_type: "auto",
       folder: "lms",
+      transformation,
     });
-    console.log("response",response);
-    
-
-    console.log("reach")
 
     return response;
   } catch (error: unknown) {
@@ -33,8 +61,8 @@ export const uploadAtCloudinary = async (
   } finally {
     try {
       await fs.unlink(localPath);
-    } catch {
-      return null
+    } catch (error) {
+      console.error("Failed to remove temporary file:", error);
     }
   }
 };
