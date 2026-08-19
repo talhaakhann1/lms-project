@@ -54,27 +54,34 @@ export const signInSchema = z.object({
 
 
 
+const optionalString = (
+  schema: z.ZodString
+) => schema.optional().or(z.literal(""));
+
 export const updateUserProfileSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must not exceed 100 characters")
-    .optional(),
+  fullName: optionalString(
+    z
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters")
+      .max(10, "Name must not exceed 10 characters")
+  ),
 
-  title: z
-    .string()
-    .trim()
-    .min(2, "Title must be at least 2 characters")
-    .max(100, "Title must not exceed 100 characters")
-    .optional(),
+  title: optionalString(
+    z
+      .string()
+      .trim()
+      .min(2, "Title must be at least 2 characters")
+      .max(100, "Title must not exceed 100 characters")
+  ),
 
-  bio: z
-    .string()
-    .trim()
-    .min(10, "Bio must be at least 10 characters")
-    .max(1000, "Bio must not exceed 1000 characters")
-    .optional(),
+  bio: optionalString(
+    z
+      .string()
+      .trim()
+      .min(10, "Bio must be at least 10 characters")
+      .max(1000, "Bio must not exceed 1000 characters")
+  ),
 
   avatar: z.instanceof(File).nullable().optional(),
 });
