@@ -55,6 +55,11 @@ const lessonSchema = new Schema<ILesson>(
   { timestamps: true },
 );
 
+lessonSchema.index({
+  course: 1,
+  order: 1,
+});
+
 export const Lesson: Model<ILesson> = mongoose.model<ILesson>(
   "Lesson",
   lessonSchema,
