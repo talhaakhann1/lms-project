@@ -104,10 +104,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const accessTokenMaxAge = 7 * 24 * 60 * 60 * 1000;
   const refreshTokenMaxAge = 30 * 24 * 60 * 60 * 1000;
 
- const cookieOptions = {
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none" as const,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
 };
 
   return res
@@ -143,10 +145,12 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(404, "User not found");
   }
 
- const cookieOptions = {
+ const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none" as const,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
 };
 
   return res
@@ -394,7 +398,7 @@ export const updateUserProfile = asyncHandler(
           "Avatar path not found",
         );
       }
-      const avatar = await uploadAtCloudinary(avatarLocalPath);
+      const avatar = await uploadAtCloudinary(avatarLocalPath, {type: "avatar"});
       if (!avatar) {
         throw new ApiError(
           500,

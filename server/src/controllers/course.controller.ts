@@ -129,7 +129,9 @@ export const createCourse = asyncHandler(
     if (existedCourse) {
       throw new ApiError(400, "Course with this title already exist");
     }
-    const thumbnail = await uploadAtCloudinary(thumbnailLocalPath);
+    const thumbnail = await uploadAtCloudinary(thumbnailLocalPath, {
+      type: "thumbnail",
+    });
     if (!thumbnail) {
       throw new ApiError(
         500,
@@ -212,7 +214,9 @@ export const updateCourse = asyncHandler(
 
       const thumbnailLocalPath = req.file.path;
 
-      const uploadedThumbnail = await uploadAtCloudinary(thumbnailLocalPath);
+      const uploadedThumbnail = await uploadAtCloudinary(thumbnailLocalPath, {
+        type: "thumbnail",
+      });
 
       if (!uploadedThumbnail) {
         throw new ApiError(
@@ -306,10 +310,6 @@ export const getCourseById = asyncHandler(
     if (!courseId) {
       throw new ApiError(400, "courseId is required");
     }
-    const existedCourse = await Course.findById(courseId);
-    if (!existedCourse) {
-      throw new ApiError(404, "course does not exist");
-    }
     const [course] = await Course.aggregate([
       {
         $match: {
@@ -319,6 +319,10 @@ export const getCourseById = asyncHandler(
       },
       ...commonCourseAggregation(req.user?._id),
     ]);
+
+    if (!course) {
+      throw new ApiError(404, "course does not exist");
+    }
     return res
       .status(200)
       .json(

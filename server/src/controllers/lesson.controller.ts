@@ -428,15 +428,23 @@ export const getLessonById = asyncHandler(
       throw new ApiError(400, "lession id is required");
     }
 
-    const existedlesson = await Lesson.findById(lessonId);
+      const [lesson] = await Lesson.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(lessonId),
+          },
+        },
+        ...commonLessonAggregation(req.user._id),
+      ]);
 
-    if (!existedlesson) {
+
+    if (!lesson) {
       throw new ApiError(400, "lession not found");
     }
 
     const previousLesson = await Lesson.findOne({
-      course: existedlesson.course,
-      order: { $lt: existedlesson.order },
+      course: lesson.course,
+      order: { $lt: lesson.order },
     })
 
       .sort({ order: -1 })
@@ -444,8 +452,8 @@ export const getLessonById = asyncHandler(
       .lean();
 
     const nextLesson = await Lesson.findOne({
-      course: existedlesson.course,
-      order: { $gt: existedlesson.order },
+      course: lesson.course,
+      order: { $gt: lesson.order },
     })
       .sort({ order: 1 })
       .select("_id title")
@@ -466,14 +474,6 @@ export const getLessonById = asyncHandler(
         : null,
     };
 
-    const [lesson] = await Lesson.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(lessonId),
-        },
-      },
-      ...commonLessonAggregation(req.user._id),
-    ]);
 
     return res.status(200).json(
       new ApiResponse(
