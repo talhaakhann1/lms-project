@@ -8,7 +8,7 @@ import { CTA } from "@/src/components/landing/about/pages/CTA";
 
 export default function AboutPage() {
   return (
-    <main className="flex flex-col bg-background">
+    <main className="flex flex-col bg-background mt-6">
       <AboutHero />
       <Mission />
       <Values />

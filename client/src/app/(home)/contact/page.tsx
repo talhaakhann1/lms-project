@@ -142,7 +142,7 @@ export default function ContactPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-28 lg:px-8">
+      <main className="mx-auto w-full mt-6 sm:mt-0 max-w-6xl px-6 py-16 sm:py-28 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
        
           <motion.div
