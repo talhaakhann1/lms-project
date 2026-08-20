@@ -73,7 +73,6 @@ export default function SignInPage() {
     try {
 
       const user = await authService.login(data)
-      console.log(user);
 
       dispatch(logIn(user))
       if (["admin", "instructor"].includes(user.role)) {
@@ -81,7 +80,7 @@ export default function SignInPage() {
       } else {
         router.replace("/dashboard");
       }
-      showSuccess("Login Successfully")
+      showSuccess("Signed in successfully")
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse<unknown>>
 

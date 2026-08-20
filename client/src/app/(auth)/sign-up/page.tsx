@@ -83,225 +83,239 @@ export default function SignUpPage() {
       fullName: "",
       email: "",
       password: "",
-      terms:false
+      terms: false
     }
   })
 
 
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-     console.log("Submit clicked", data);
-  setIsSubmitting(true);
-  try {
-    const user = await authService.register(data);
+    setIsSubmitting(true);
+    try {
+      await authService.register(data);
 
-    showSuccess("Account created successfully");
+      showSuccess(
+        "Account created successfully", " Please sign in to continue."
+      );
 
-    router.replace("/sign-in");
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      router.replace("/sign-in");
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
 
-    const errorMessage =
-      axiosError.response?.data.message ?? "Something went wrong";
+      const errorMessage =
+        axiosError.response?.data.message ?? "Something went wrong";
 
-    console.error(errorMessage);
-
-    showError("Something went wrong", errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
 
-return (
-  <section className="flex min-h-screen w-full items-center justify-center px-4 py-16 md:py-24">
-    <div className="w-full max-w-md">
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold md:text-3xl">
-          Create your account
-        </h1>
-        <p className="mt-2 text-base text-muted-foreground">
-          Start building for free. No credit card required.
-        </p>
-      </div>
+  return (
+    <section className="flex min-h-screen w-full items-center justify-center px-4 py-16 md:py-24">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold md:text-3xl">
+            Create your account
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground">
+            Start building for free. No credit card required.
+          </p>
+        </div>
 
-      <div className="rounded-md border bg-card p-6 md:p-8">
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <Field>
-              <Button
-                variant="outline"
-                size="lg"
-                render={<Link href="#" />}
-                nativeButton={false}
-              >
-                {GoogleIcon}
-                Google
-              </Button>
+        <div className="rounded-md border bg-card p-6 md:p-8">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Field>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  render={<Link href="#" />}
+                  nativeButton={false}
+                >
+                  {GoogleIcon}
+                  Google
+                </Button>
 
-              <Button
-                variant="outline"
-                size="lg"
-                render={<Link href="#" />}
-                nativeButton={false}
-              >
-                {GithubIcon}
-                GitHub
-              </Button>
-            </Field>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  render={<Link href="#" />}
+                  nativeButton={false}
+                >
+                  {GithubIcon}
+                  GitHub
+                </Button>
+              </Field>
 
-            <Controller
-              name="fullName"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={`${fieldId}-name`}>
-                    Full name
-                  </FieldLabel>
+              <Controller
+                name="fullName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${fieldId}-name`}>
+                      Full name
+                    </FieldLabel>
 
-                  <Input
-                    {...field}
-                    id={`${fieldId}-name`}
-                    type="text"
-                    placeholder="Jane Cooper"
-                    className="h-11"
-                    aria-invalid={fieldState.invalid}
-                    autoComplete="name"
-                  />
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={`${fieldId}-email`}>
-                    Email
-                  </FieldLabel>
-
-                  <Input
-                    {...field}
-                    id={`${fieldId}-email`}
-                    type="email"
-                    placeholder="you@example.com"
-                    className="h-11"
-                    aria-invalid={fieldState.invalid}
-                    autoComplete="email"
-                  />
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={`${fieldId}-password`}>
-                    Password
-                  </FieldLabel>
-
-                  <div className="relative">
                     <Input
                       {...field}
-                      id={`${fieldId}-password`}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
-                      className="h-11 pr-11"
+                      id={`${fieldId}-name`}
+                      type="text"
+                      placeholder="Jane Cooper"
+                      className="h-11"
                       aria-invalid={fieldState.invalid}
-                      autoComplete="new-password"
+                      autoComplete="name"
                     />
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                      onClick={() => setShowPassword((value) => !value)}
-                      className="absolute right-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </Button>
-                  </div>
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="terms"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  data-invalid={fieldState.invalid}
-                >
-                  <Checkbox
-                    id={`${fieldId}-terms`}
-                    className="mt-0.5"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    aria-invalid={fieldState.invalid}
-                  />
-
-                  <FieldLabel
-                    htmlFor={`${fieldId}-terms`}
-                    className="font-normal text-muted-foreground [&_a]:font-medium [&_a]:text-foreground [&_a]:underline"
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        'I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>',
-                    }}
-                  />
-
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Field>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Please wait
-                  </>
-                ) : (
-                  "Create account"
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
                 )}
-              </Button>
-            </Field>
-          </FieldGroup>
-        </form>
+              />
 
-        <FieldDescription className="!mt-6 text-center">
-          Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-foreground">
-            Sign in
-          </Link>
-        </FieldDescription>
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${fieldId}-email`}>
+                      Email
+                    </FieldLabel>
+
+                    <Input
+                      {...field}
+                      id={`${fieldId}-email`}
+                      type="email"
+                      placeholder="you@example.com"
+                      className="h-11"
+                      aria-invalid={fieldState.invalid}
+                      autoComplete="email"
+                    />
+
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${fieldId}-password`}>
+                      Password
+                    </FieldLabel>
+
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        id={`${fieldId}-password`}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a password"
+                        className="h-11 pr-11"
+                        aria-invalid={fieldState.invalid}
+                        autoComplete="new-password"
+                      />
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        onClick={() => setShowPassword((value) => !value)}
+                        className="absolute right-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="terms"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <div
+                    className="w-full min-w-0"
+                    data-invalid={fieldState.invalid}
+                  >
+                    <div className="flex w-full min-w-0 items-start gap-2">
+                      <Checkbox
+                        id={`${fieldId}-terms`}
+                        className="mt-1 shrink-0"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-invalid={fieldState.invalid}
+                      />
+
+                      <label
+                        htmlFor={`${fieldId}-terms`}
+                        className="min-w-0 flex-1 text-sm font-normal leading-relaxed text-muted-foreground"
+                      >
+                        I agree to the{" "}
+                        <a
+                          href="/terms"
+                          className="font-medium text-foreground underline"
+                        >
+                          Terms of Service
+                        </a>{" "}
+                        and{" "}
+                        <a
+                          href="/privacy"
+                          className="font-medium text-foreground underline"
+                        >
+                          Privacy Policy
+                        </a>
+                      </label>
+                    </div>
+
+                    {fieldState.invalid && (
+                      <div className="mt-1 ml-6">
+                        <FieldError errors={[fieldState.error]} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+
+              <Field>
+                <Button type="submit" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Please wait
+                    </>
+                  ) : (
+                    "Create account"
+                  )}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+
+          <FieldDescription className="!mt-6 text-center">
+            Already have an account?{" "}
+            <Link href="/sign-in" className="font-medium text-foreground">
+              Sign in
+            </Link>
+          </FieldDescription>
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
 }
