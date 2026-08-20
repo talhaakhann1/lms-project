@@ -107,10 +107,10 @@ const buttonTap = { scale: 0.97 };
 
 
 const contactDetails = [
-  { icon: Mail, label: "Email", value: "support@learnly.com" },
-  { icon: Phone, label: "Phone", value: "+1 (555) 010-2938" },
+  { icon: Mail, label: "Email", value: "support@edvra.com" },
+  { icon: Phone, label: "Phone", value: "+92 (123) 456" },
   { icon: Clock, label: "Support Hours", value: "Mon–Fri, 9am–6pm EST" },
-  { icon: MapPin, label: "Location", value: "Remote-first · San Francisco, CA" },
+  { icon: MapPin, label: "Location", value: "Remote-first · Lahore, Pakistan" },
 ];
 
 
@@ -191,7 +191,7 @@ export default function ContactPage() {
               />
               <p className="text-sm text-muted-foreground">
                 Looking for quick answers? Check our{" "}
-                <a href="/faq" className="font-medium text-primary hover:underline">
+                <a href="/" className="font-medium text-primary hover:underline">
                   FAQ
                 </a>{" "}
                 before reaching out — you might find what you need right away.
