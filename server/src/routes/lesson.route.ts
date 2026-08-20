@@ -36,7 +36,7 @@ router
   .delete(verifyJWT, verifyRoles(["admin","instructor"]), deleteLesson);
 router
   .route("/lesson/:lessonId")
-  .get(verifyJWT, getLessonById);
+  .get(verifyJWT,verifyEnrollment, getLessonById);
 router
   .route("/:courseId")
   .get(getLoggedInUserOrIgnore, getAllCourseLessons);
