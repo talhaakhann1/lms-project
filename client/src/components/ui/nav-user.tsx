@@ -24,7 +24,7 @@ import { ChevronsUpDownIcon, SparklesIcon, UserIcon, BellIcon, CreditCardIcon, S
 import { authService } from "@/src/services/auth.service";
 import { useRouter } from "next/navigation";
 import { logOut } from "@/src/store/authSlice";
-import { showError, showSuccess } from "./toaster";
+import { showError, showInfo, showSuccess } from "./toaster";
 import { AxiosError } from "axios";
 import ApiResponse from "@/src/utils/ApiResponse";
 import { useState } from "react";
@@ -53,8 +53,12 @@ export function NavUser() {
 
 		try {
 			await authService.logout();
+
 			dispatch(logOut());
-			router.replace("/");
+
+			showInfo("You have been signed out successfully.");
+
+			window.location.replace("/");
 		} catch (error) {
 			showError("Logout failed", "Please try again.");
 		} finally {

@@ -43,21 +43,19 @@ export function Header() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const dispatch = useAppDispatch();
-  const router = useRouter()
+
   const logoutHandler = async () => {
     setIsLoading(true)
     try {
 
       await authService.logout()
       dispatch(logOut())
-      showInfo("Logout Successfully")
+      showInfo("You have been signed out successfully.");
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse<unknown>>
 
-      let errorMessage = AxiosError.response?.data.message
-      console.log(errorMessage);
-
-      showError("Something went wrong", errorMessage)
+      let errorMessage = AxiosError.response?.data.message ??"Something went wrong"
+      showError("Logout failed", "Please try again.");
     } finally {
       setIsLoading(false)
     }

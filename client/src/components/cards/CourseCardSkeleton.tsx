@@ -45,6 +45,6 @@ export function CourseCardSkeletonGrid({ count = 8 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <CourseCardSkeleton key={i} />
       ))}
-    </div>
+     </div>
   );
 } 
