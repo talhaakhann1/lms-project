@@ -1,0 +1,21 @@
+services:
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    env_file:
+      - ./server/.env
+    ports:
+      - 8000:8000
+
+  client:
+    build: 
+     context: ./client
+     dockerfile: Dockerfile
+    env_file:
+      - ./client/.env.local
+    ports:
+      - 3000:3000
+    depends_on:
+      - server
+    
