@@ -5,7 +5,7 @@ import { AdminMetrics } from "../types/interfaces/admin.interface";
 class AdminService {
 async getMetrics(): Promise<AdminMetrics> {
   const response = await api.get<ApiResponse<AdminMetrics>>(
-    "/api/admin/metrics"
+    "/admin/metrics"
   );
 
   return response.data.data;

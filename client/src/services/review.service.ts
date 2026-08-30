@@ -18,7 +18,7 @@ class ReviewService {
     data: CreateReviewDto
   ): Promise<Review> {
     const response = await api.post<ApiResponse<Review>>(
-      `/api/reviews/create/${courseId}`,
+      `/reviews/create/${courseId}`,
       data
     );
 
@@ -30,7 +30,7 @@ class ReviewService {
     data: UpdateReviewDto
   ): Promise<Review> {
     const response = await api.patch<ApiResponse<Review>>(
-      `/api/reviews/update/${reviewId}`,
+      `/reviews/update/${reviewId}`,
       data
     );
 
@@ -43,7 +43,7 @@ class ReviewService {
 
   async getCourseReviews(courseId: string): Promise<Review[]> {
     const response = await api.get<ApiResponse<Review[]>>(
-      `/api/reviews/course/${courseId}`
+      `/reviews/course/${courseId}`
     );
 
     return response.data.data;

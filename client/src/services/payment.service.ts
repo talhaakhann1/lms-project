@@ -6,14 +6,14 @@ class PaymentService {
   async createPaymentSession(orderId: string): Promise<string> {
   const response = await api.post<
     ApiResponse<{ url: string }>
-  >(`/api/payments/create-payment-session/${orderId}`);
+  >(`/payments/create-payment-session/${orderId}`);
 
   return response.data.data.url;
 }
 
   async getByOrderId(orderId: string): Promise<Payment> {
     const response = await api.get<ApiResponse<Payment>>(
-      `/api/payments/${orderId}`
+      `/payments/${orderId}`
     );
       return response.data.data;
   }
@@ -21,7 +21,7 @@ class PaymentService {
 
   async getByAll(): Promise<Payment[]> {
     const response = await api.get<ApiResponse<Payment[]>>(
-      "/api/payments/all"
+      "/payments/all"
     );
   return response.data.data;
   }

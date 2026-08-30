@@ -21,7 +21,7 @@ type ChangeAvatarDto = z.infer<typeof changeAvatarSchema>;
 class AuthService {
   async login(data: SignInDto): Promise<User> {
     const response = await api.post<ApiResponse<User>>(
-      "/api/auth/sign-in",
+      "/auth/sign-in",
       data,
     );
 
@@ -30,7 +30,7 @@ class AuthService {
 
   async register(data: SignUpDto): Promise<User> {
     const response = await api.post<ApiResponse<User>>(
-      "/api/auth/sign-up",
+      "/auth/sign-up",
       data,
     );
     if (!response.data.success) {
@@ -41,27 +41,27 @@ class AuthService {
   }
 
   async getUser(): Promise<User> {
-    const response = await api.get<ApiResponse<User>>("/api/auth/get-user");
+    const response = await api.get<ApiResponse<User>>("/auth/get-user");
 
     return response.data.data;
   }
 
   async refreshToken(): Promise<void> {
-    await api.post("/api/auth/refresh-token");
+    await api.post("/auth/refresh-token");
   }
 
   async logout(): Promise<void> {
-    await api.post("/api/auth/logout");
+    await api.post("/auth/logout");
   }
 
   async getUsers(): Promise<User[]> {
-    const response = await api.get<ApiResponse<User[]>>("/api/auth/get-users");
+    const response = await api.get<ApiResponse<User[]>>("/auth/get-users");
 
     return response.data.data;
   }
   async getInstructors(): Promise<Instructor[]> {
     const response = await api.get<ApiResponse<Instructor[]>>(
-      "/api/auth/get-instructors",
+      "/auth/get-instructors",
     );
 
     return response.data.data;
@@ -69,7 +69,7 @@ class AuthService {
 
   async updateRole(userId: string, role: string): Promise<void> {
     const response = await api.patch<ApiResponse<void>>(
-      `/api/auth/update-role/${userId}`,
+      `/auth/update-role/${userId}`,
       {
         role:role
       },
@@ -80,7 +80,7 @@ class AuthService {
 
   async changeAvatar(data: FormData): Promise<User> {
     const response = await api.patch<ApiResponse<User>>(
-      "/api/auth/change-avatar",
+      "/auth/change-avatar",
       data,
       {
         headers: {
@@ -107,7 +107,7 @@ class AuthService {
     }
 
     const response = await api.patch<ApiResponse<User | null>>(
-      "/api/auth/update-profile",
+      "/auth/update-profile",
       formData,
     );
     return response.data.data;

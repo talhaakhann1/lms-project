@@ -24,7 +24,7 @@ class LessonService {
     }
   });
     const response = await api.post<ApiResponse<Lesson>>(
-      `/api/lessons/create/${courseId}`,
+      `/lessons/create/${courseId}`,
       formData
     );
 
@@ -47,7 +47,7 @@ class LessonService {
   console.log(formData);
   
     const response = await api.patch<ApiResponse<Lesson>>(
-      `/api/lessons/update/${lessonId}`,
+      `/lessons/update/${lessonId}`,
       formData
     );
 
@@ -59,7 +59,7 @@ class LessonService {
     data: FormData
   ): Promise<Lesson> {
     const response = await api.patch<ApiResponse<Lesson>>(
-      `/api/lessons/update-video/${lessonId}`,
+      `/lessons/update-video/${lessonId}`,
       data
     );
 
@@ -68,7 +68,7 @@ class LessonService {
 
   async getById(lessonId: string): Promise<LessonDetails> {
     const response = await api.get<ApiResponse<LessonDetails>>(
-      `/api/lessons/lesson/${lessonId}`
+      `/lessons/lesson/${lessonId}`
     );
 
     return response.data.data;
@@ -77,14 +77,14 @@ class LessonService {
 
   async getCourseLessons(courseId: string): Promise<Lesson[]> {
     const response = await api.get<ApiResponse<Lesson[]>>(
-      `/api/lessons/${courseId}`
+      `/lessons/${courseId}`
     );
 
     return response.data.data;
   }
 
   async delete(lessonId: string): Promise<void> {
-    await api.delete(`/api/lessons/delete/${lessonId}`);
+    await api.delete(`/lessons/delete/${lessonId}`);
   }
 }
 

@@ -5,7 +5,7 @@ import { Order } from "../types/interfaces/order.interface";
 class OrderService {
   async create(courseId: string): Promise<Order> {
     const response = await api.post<ApiResponse<Order>>(
-      `/api/orders/${courseId}/create`
+      `/orders/${courseId}/create`
     );
 
     return response.data.data;
@@ -13,14 +13,14 @@ class OrderService {
 
   async getAll(): Promise<Order[]> {
     const response = await api.get<ApiResponse<Order[]>>(
-      "/api/orders/all"
+      "/orders/all"
     );
 
     return response.data.data;
   }
   async getById(orderId:string): Promise<Order> {
     const response = await api.get<ApiResponse<Order>>(
-      `/api/orders/${orderId}`
+      `/orders/${orderId}`
     );
     return response.data.data;
   }

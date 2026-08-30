@@ -5,7 +5,7 @@ import { EnrolledCourse, Enrollment } from "../types/interfaces/enrollment.inter
 class EnrollmentService {
   async getMyCourses(): Promise<EnrolledCourse[]> {
   const response = await api.get<ApiResponse<EnrolledCourse[]>>(
-    "/api/enrollments/my-courses"
+    "/enrollments/my-courses"
   );
 
   return response.data.data;
@@ -13,7 +13,7 @@ class EnrollmentService {
 
   async getAll(): Promise<Enrollment[]> {
     const response = await api.get<ApiResponse<Enrollment[]>>(
-      "/api/enrollments/all"
+      "/enrollments/all"
     );
 
     return response.data.data;
@@ -21,7 +21,7 @@ class EnrollmentService {
 
   async getById(enrollmentId: string): Promise<Enrollment> {
     const response = await api.get<ApiResponse<Enrollment>>(
-      `/api/enrollment/${enrollmentId}`
+      `/enrollment/${enrollmentId}`
     );
 
     return response.data.data;

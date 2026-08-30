@@ -23,7 +23,7 @@ class CourseService {
     }
   });
     const response = await api.post<ApiResponse<Course>>(
-      "/api/courses/create",
+      "/courses/create",
       formData,
     );
 
@@ -46,7 +46,7 @@ Object.entries(data).forEach(([key, value]) => {
   }
 });
     const response = await api.patch<ApiResponse<Course>>(
-      `/api/courses/update/${courseId}`,
+      `/courses/update/${courseId}`,
       formData
     );
 
@@ -58,7 +58,7 @@ Object.entries(data).forEach(([key, value]) => {
     data: FormData
   ): Promise<Course> {
     const response = await api.patch<ApiResponse<Course>>(
-      `/api/courses/update-thumbnail/${courseId}`,
+      `/courses/update-thumbnail/${courseId}`,
       data,
       {
         headers: {
@@ -72,7 +72,7 @@ Object.entries(data).forEach(([key, value]) => {
 
   async getById(courseId: string): Promise<Course> {
     const response = await api.get<ApiResponse<Course>>(
-      `/api/courses/${courseId}`
+      `/courses/${courseId}`
     );
 
     return response.data.data;
@@ -80,14 +80,14 @@ Object.entries(data).forEach(([key, value]) => {
 
   async getAll(): Promise<Course[]> {
     const response = await api.get<ApiResponse<Course[]>>(
-      "/api/courses"
+      "/courses"
     );
 
     return response.data.data;
   }
 
   async delete(courseId: string): Promise<void> {
-    await api.delete(`/api/courses/delete/${courseId}`);
+    await api.delete(`/courses/delete/${courseId}`);
   }
 }
 
