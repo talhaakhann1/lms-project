@@ -9,9 +9,7 @@ services:
       - 8000:8000
 
   client:
-    build: 
-     context: ./client
-     dockerfile: Dockerfile
+    image: talhakhan45/lms-client:latest
     env_file:
       - ./client/.env.local
     ports:
