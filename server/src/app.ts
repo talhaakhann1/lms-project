@@ -59,7 +59,7 @@ app.use(cookieParser())
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    message: "Server is healthy",
+    message: "Server is healthy and ok",
   });
 });
 
