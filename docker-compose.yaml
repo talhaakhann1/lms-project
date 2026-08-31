@@ -8,12 +8,4 @@ services:
     ports:
       - 8000:8000
 
-  client:
-    image: talhakhan45/lms-client:latest
-    env_file:
-      - ./client/.env.local
-    ports:
-      - 3000:3000
-    depends_on:
-      - server
-    
+
