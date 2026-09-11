@@ -6,6 +6,7 @@ import { Enrollment } from "../models/enrollment.model.js";
 import { Lesson } from "../models/lesson.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redis.js";
 
 export const completeLesson = asyncHandler(
   async (req: Request, res: Response) => {
@@ -15,55 +16,38 @@ export const completeLesson = asyncHandler(
       throw new ApiError(400, "lessonId is required");
     }
 
+    const lesson = req.lessonContext;
+
     const userId = req.user._id;
-
-    const lesson = await Lesson.findById(lessonId).select("course").lean();
-
-    if (!lesson) {
-      throw new ApiError(404, "Lesson not found");
-    }
 
     const session = await mongoose.startSession();
 
     try {
       await session.withTransaction(async () => {
-    
-        const enrollment = await Enrollment.findOne({
-          user: userId,
-          course: lesson.course,
-        }).session(session);
-
-        if (!enrollment) {
-          throw new ApiError(403, "You are not enrolled in this course");
-        }
-
         const progress = await LessonProgress.findOneAndUpdate({
           user: userId,
-          course: lesson.course,
+          course: lesson?.course,
         }).session(session);
 
         if (!progress) {
           throw new ApiError(404, "Lesson progress not found");
         }
 
-        const alreadyCompleted =
-          progress.completedLessonIds.some(
-            (id) => id.toString() === lessonId,
-          );
+        const alreadyCompleted = progress.completedLessonIds.some(
+          (id) => id.toString() === lessonId,
+        );
 
         if (alreadyCompleted) {
           return;
         }
 
-        progress.completedLessonIds.push(lesson._id)
+        progress.completedLessonIds.push(lesson?.id);
 
-     
         if (progress.completedLessons >= progress.totalLessons) {
           return;
         }
 
-         progress.completedLessons =
-          progress.completedLessonIds.length;
+        progress.completedLessons = progress.completedLessonIds.length;
 
         progress.progress =
           progress.totalLessons === 0
@@ -82,6 +66,8 @@ export const completeLesson = asyncHandler(
         await progress.save({ session });
       });
 
+      await redisClient.del(`lesson-progress:${userId}:course:${lesson?.course}`);
+
       return res
         .status(200)
         .json(new ApiResponse(200, {}, "Lesson completed successfully"));
@@ -93,50 +79,63 @@ export const completeLesson = asyncHandler(
 
 export const getLessonProgress = asyncHandler(
   async (req: Request, res: Response) => {
-    const { lessonId } = req.params;
-    if (!lessonId) {
-      throw new ApiError(400, "lessonId is required");
+    const { courseId } = req.params;
+
+    if (!courseId) {
+      throw new ApiError(400, "courseId is required");
     }
+
     const userId = req.user._id;
 
-    const lesson = await Lesson.findById(lessonId).select("course").lean();
+    const cacheKey = `lesson-progress:${userId}:course:${courseId}`;
 
-    if (!lesson) {
-      throw new ApiError(404, "Lesson not found");
+    const cachedProgress = await redisClient.get(cacheKey);
+
+    if (cachedProgress) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cachedProgress),
+            "Lesson progress fetched successfully",
+          ),
+        );
     }
-    const existedProgress = await LessonProgress.findOne({
-      user: userId,
-      course: lesson.course,
-    });
 
-    if (!existedProgress) {
+    const progress = await LessonProgress.findOne({
+      user: userId,
+      course: courseId,
+    })
+      .select(
+        "_id progress completedLessons totalLessons completeAt createdAt updatedAt",
+      )
+      .lean();
+
+    if (!progress) {
       throw new ApiError(404, "Lesson progress not found");
     }
-    const [progress] = await LessonProgress.aggregate([
-      {
-        $match: {
-          user: userId,
-          course: lesson.course,
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          id: { $toString: "$_id" },
-          progress: 1,
-          completedLessons: 1,
-          totalLessons: 1,
-          completeAt: 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
-      },
-    ]);
-    if(!progress){
-      throw new ApiError(400,"Something went wrong in getting lesson progress")
-    }
-     return res
-        .status(200)
-        .json(new ApiResponse(200, progress, "Sucessfully get Lesson progress"));
+
+    const formattedProgress = {
+      id: progress._id.toString(),
+      progress: progress.progress,
+      completedLessons: progress.completedLessons,
+      totalLessons: progress.totalLessons,
+      completeAt: progress.completeAt,
+      createdAt: progress.createdAt,
+      updatedAt: progress.updatedAt,
+    };
+
+    await redisClient.setEx(cacheKey, 30, JSON.stringify(formattedProgress));
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          formattedProgress || [],
+          "Sucessfully get Lesson progress",
+        ),
+      );
   },
 );

@@ -7,6 +7,7 @@ import { Order } from "../models/order.model.js";
 import { format } from "node:path";
 import { Enrollment } from "../models/enrollment.model.js";
 import { User } from "../models/user.model.js";
+import redisClient from "../config/redis.js";
 
 const startDate = new Date();
 startDate.setDate(startDate.getDate() - 6);
@@ -29,6 +30,24 @@ interface EnrollmentPoint {
 
 export const getAdminMetrics = asyncHandler(
   async (req: Request, res: Response) => {
+    const userId = req.user._id;
+
+    const cacheKey = `admin-metrics:${userId}`;
+
+    const cacheMetrics = await redisClient.get(cacheKey);
+
+    if (cacheMetrics) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cacheMetrics),
+            "Successfully got all admin metrics",
+          ),
+        );
+    }
+
     const revenueAggregation = await Order.aggregate([
       {
         $match: {
@@ -86,18 +105,18 @@ export const getAdminMetrics = asyncHandler(
         },
       },
       {
-  $group: {
-    _id: {
-      $dateToString: {
-        format: "%Y-%m-%d",
-        date: "$createdAt",
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+            },
+          },
+          orders: {
+            $sum: 1,
+          },
+        },
       },
-    },
-    orders: {
-      $sum: 1,
-    },
-  },
-},
       {
         $sort: {
           _id: 1,
@@ -171,44 +190,52 @@ export const getAdminMetrics = asyncHandler(
         enrollments: enrollmentMap.get(key) ?? 0,
       });
     }
-  const [
-  revenueResult,
-  totalOrders,
-  totalEnrollments,
-  totalStudents,
-] = await Promise.all([
-  Order.aggregate([
-    {
-      $match: {
-        isPaid: true,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        total: {
-          $sum: "$totalAmount",
-        },
-      },
-    },
-  ]),
+    const [revenueResult, totalOrders, totalEnrollments, totalStudents] =
+      await Promise.all([
+        Order.aggregate([
+          {
+            $match: {
+              isPaid: true,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: {
+                $sum: "$totalAmount",
+              },
+            },
+          },
+        ]),
 
-  Order.countDocuments({
-    isPaid: true,
-  }),
+        Order.countDocuments({
+          isPaid: true,
+        }),
 
-  Enrollment.countDocuments(),
+        Enrollment.countDocuments(),
 
-  User.countDocuments({
-    role: "student",
-  }),
-]);
-const stats = {
-  totalRevenue: revenueResult[0]?.total ?? 0,
-  totalOrders,
-  totalEnrollments,
-  totalStudents,
-};
+        User.countDocuments({
+          role: "student",
+        }),
+      ]);
+    const stats = {
+      totalRevenue: revenueResult[0]?.total ?? 0,
+      totalOrders,
+      totalEnrollments,
+      totalStudents,
+    };
+
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify({
+        revenueData,
+        orderData,
+        enrollmentData,
+        stats,
+      }),
+    );
+    
     return res.status(200).json(
       new ApiResponse(
         200,
@@ -216,7 +243,7 @@ const stats = {
           revenueData,
           orderData,
           enrollmentData,
-          stats
+          stats,
         },
         "Successfully got all admin metrics",
       ),

@@ -278,7 +278,11 @@ export const getCurrentUser = asyncHandler(
 export const getUsers = asyncHandler(async (_, res: Response) => {
   const users = await User.aggregate([
     {
-      $match: {},
+      $match: {
+       role:{
+        $in:["student","instructor"]
+       }
+      },
     },
     {
       $project: {
@@ -388,7 +392,6 @@ export const updateUserProfile = asyncHandler(
     if (bio) updatedData.bio = bio;
 
     if (req.file) {
-      console.log(req.file);
       
       const avatarLocalPath = req.file.path;
 

@@ -7,6 +7,7 @@ import { stripe } from "../utils/stripeInstance.js";
 import { Order } from "../models/order.model.js";
 import { Payment } from "../models/payment.model.js";
 import { Course } from "../models/course.model.js";
+import redisClient from "../config/redis.js";
 
 function commonPaymentAggregation(): PipelineStage[] {
   return [
@@ -98,51 +99,6 @@ function commonPaymentAggregation(): PipelineStage[] {
   ];
 }
 
-// export const createPaymentIntent = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const { orderId } = req.params;
-//     if (!orderId) {
-//       throw new ApiError(400, "order is required");
-//     }
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       throw new ApiError(400, "Order does not exist");
-//     }
-//     if (order.isPaid) {
-//       throw new ApiError(400, "Order is already paid");
-//     }
-//     const paymentIntent = await stripe.paymentIntents.create(
-//       {
-//         amount: order.totalAmount * 100,
-//         currency: "usd",
-//         automatic_payment_methods: {
-//           enabled: true,
-//           allow_redirects: "never",
-//         },
-//         metadata: {
-//           orderId: order._id.toString(),
-//           userId: req.user._id.toString(),
-//         },
-//       },
-//       {
-//         idempotencyKey: crypto.randomUUID(),
-//       },
-//     );
-
-//     order.paymentIntentId = paymentIntent.id;
-//     await order.save();
-//     return res.status(200).json(
-//       new ApiResponse(
-//         200,
-//         {
-//           clientSecret: paymentIntent.client_secret,
-//         },
-//         "Payment intent created successfully",
-//       ),
-//     );
-//   },
-// );
-
 export const createPaymentSession = asyncHandler(
   async (req: Request, res: Response) => {
     const { orderId } = req.params;
@@ -226,6 +182,16 @@ export const getPaymentByOrderId = asyncHandler(
       throw new ApiError(400, "Invalid order id");
     }
 
+    const cacheKey = `payment:order:${orderId}`;
+
+    const cachePayment = await redisClient.get(cacheKey);
+
+    if (cachePayment) {
+      return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cachePayment), "Payment fetched successfully"));
+    }
+
     const [payment] = await Payment.aggregate([
       {
         $match: {
@@ -239,6 +205,12 @@ export const getPaymentByOrderId = asyncHandler(
       throw new ApiError(404, "Payment not found");
     }
 
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(payment)
+    );
+
     return res
       .status(200)
       .json(new ApiResponse(200, payment, "Payment fetched successfully"));
@@ -246,12 +218,30 @@ export const getPaymentByOrderId = asyncHandler(
 );
 export const getAllPayment = asyncHandler(
   async (req: Request, res: Response) => {
+    const cacheKey=`payments:all`
+    const cachePayments=await redisClient.get(cacheKey)
+
+    if(cachePayments){
+      return res
+      .status(200)
+      .json(
+        new ApiResponse(200, JSON.parse(cachePayments), "Successfully get all payment"),
+      );
+    }
+
     const [payment] = await Payment.aggregate([
       {
         $match: {},
       },
       ...commonPaymentAggregation(),
     ]);
+
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(payment)
+    )
+
     return res
       .status(200)
       .json(

@@ -9,10 +9,10 @@ import { Lesson } from "../models/lesson.model.js";
 import { Enrollment } from "../models/enrollment.model.js";
 import { LessonProgress } from "../models/lessonProgress.model.js";
 import { title } from "process";
+import redisClient from "../config/redis.js";
+import type { ILesson } from "../interfaces/lesson.interface.js";
 
-function commonLessonAggregation(
-  userId?: Types.ObjectId,
-): PipelineStage[] {
+function commonLessonAggregation(userId?: Types.ObjectId): PipelineStage[] {
   return [
     {
       $set: {
@@ -207,7 +207,9 @@ export const createLesson = asyncHandler(
   async (req: Request, res: Response) => {
     const { title, description, body, order, instructor, isPublished } =
       req.body;
+
     const { courseId } = req.params;
+
     if (!req.file) {
       throw new ApiError(404, "video file is required");
     }
@@ -216,18 +218,32 @@ export const createLesson = asyncHandler(
       throw new ApiError(400, "Invalid course id");
     }
     const userId = req.user._id;
-    const existedCourse = await Course.findById(courseId);
-    if (!existedCourse) {
-      throw new ApiError(404, "course does not exist");
+
+    const [courseExists, existingLesson] = await Promise.all([
+      Course.exists({
+        _id: courseId,
+      }),
+
+      Lesson.findOne({
+        course: courseId,
+        $or: [{ title }, { order }],
+      }).lean(),
+    ]);
+
+    if (!courseExists) {
+      throw new ApiError(404, "Course does not exist");
     }
-    const existLesson = await Lesson.findOne({
-      title,
-      order,
-    });
-    if (existLesson) {
-      throw new ApiError(400, "lesson with this title or order already exist");
+
+    if (existingLesson) {
+      throw new ApiError(
+        409,
+        "A lesson with this title or order already exists",
+      );
     }
+
     const videoLocalPath = req.file?.path;
+    let uploadedVideoPublicId: string | null = null;
+
     if (!videoLocalPath) {
       throw new ApiError(400, "videolocalpath is required");
     }
@@ -239,51 +255,103 @@ export const createLesson = asyncHandler(
         "Something went wrong while uploading at cloudinary",
       );
     }
-    const lession = await Lesson.create({
-      title,
-      description,
-      body,
-      order,
-      instructor,
-      video: {
-        url: video.secure_url,
-        publicId: video.public_id,
-        duration: video.duration,
-      },
-      course: courseId,
-      isPublished,
-      createdBy: userId,
-    });
-    const progressRecords = await LessonProgress.find({
-      course: courseId,
-    });
 
-    for (const progress of progressRecords) {
-      progress.totalLessons += 1;
+    uploadedVideoPublicId = video.public_id;
 
-      progress.progress =
-        progress.totalLessons === 0
-          ? 0
-          : Math.round(
-              (progress.completedLessons / progress.totalLessons) * 100,
-            );
+    const session = await mongoose.startSession();
 
-      await progress.save();
+    try {
+      const lesson = await session.withTransaction(async () => {
+        const lesson = new Lesson({
+          title,
+          description,
+          body,
+          order,
+          instructor,
+          video: {
+            url: video.secure_url,
+            publicId: video.public_id,
+            duration: video.duration,
+          },
+          course: courseId,
+          isPublished,
+          createdBy: userId,
+        });
+
+        await lesson.save({ session });
+
+        await LessonProgress.updateMany(
+          {
+            course: courseId,
+          },
+          [
+            {
+              $set: {
+                totalLessons: {
+                  $add: ["$totalLessons", 1],
+                },
+              },
+            },
+            {
+              $set: {
+                progress: {
+                  $cond: [
+                    { $eq: ["$totalLessons", 0] },
+                    0,
+                    {
+                      $round: [
+                        {
+                          $multiply: [
+                            {
+                              $divide: ["$completedLessons", "$totalLessons"],
+                            },
+                            100,
+                          ],
+                        },
+                        0,
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          {
+            session,
+            updatePipeline: true,
+          },
+        );
+
+        return lesson;
+      });
+
+      if (!lesson) {
+        throw new ApiError(500, "Failed to create lesson");
+      }
+
+      const lessonId = lesson._id.toString();
+
+      await Promise.all([
+        redisClient.del(`lesson:${lessonId}:course:${courseId}`),
+        redisClient.del(`course:${courseId}:lessons`),
+        redisClient.del(`lesson-progress:${userId}:course:${courseId}`),
+      ]);
+    } catch (error) {
+      if (uploadedVideoPublicId) {
+        try {
+          await deleteAtCloudinary(uploadedVideoPublicId, "video");
+        } catch (cleanupError) {
+          console.error("Cloudinary cleanup failed:", cleanupError);
+        }
+      }
+
+      throw error;
+    } finally {
+      await session.endSession();
     }
-
-    const [createdLesson] = await Lesson.aggregate([
-      {
-        $match: {
-          _id: lession._id,
-        },
-      },
-      ...commonLessonAggregation(),
-    ]);
     return res
       .status(201)
-      .json(
-        new ApiResponse(201, createdLesson, "Successfully created the lession"),
-      );
+      .json(new ApiResponse(201, {}, "Successfully created the lesson"));
   },
 );
 
@@ -291,7 +359,9 @@ export const updateLesson = asyncHandler(
   async (req: Request, res: Response) => {
     const { title, description, body, order, instructor, isPublished } =
       req.body;
+
     const { lessonId } = req.params;
+
     if (!lessonId) {
       throw new ApiError(400, "lession id is required");
     }
@@ -305,16 +375,14 @@ export const updateLesson = asyncHandler(
     if (instructor !== undefined) updateData.instructor = instructor;
     if (isPublished !== undefined) updateData.isPublished = isPublished;
 
-    const existedLesson = await Lesson.findById(lessonId);
+    const existingLesson = await Lesson.findById(lessonId);
 
-    if (!existedLesson) {
-      throw new ApiError(404, "lesson does not exist");
+    if (!existingLesson) {
+      throw new ApiError(404, "Lesson not found");
     }
 
     if (req.file) {
-      const videoLocalPath = req.file.path;
-
-      const uploadedVideo = await uploadAtCloudinary(videoLocalPath);
+      const uploadedVideo = await uploadAtCloudinary(req.file.path);
 
       if (!uploadedVideo) {
         throw new ApiError(
@@ -323,15 +391,15 @@ export const updateLesson = asyncHandler(
         );
       }
 
-      if (existedLesson.video?.publicId) {
-        await deleteAtCloudinary(existedLesson.video.publicId, "video");
-      }
-
       updateData.video = {
         url: uploadedVideo.secure_url,
         publicId: uploadedVideo.public_id,
         duration: uploadedVideo.duration,
       };
+
+      if (existingLesson.video?.publicId) {
+        await deleteAtCloudinary(existingLesson.video.publicId, "video");
+      }
     }
 
     const lesson = await Lesson.findByIdAndUpdate(
@@ -341,79 +409,149 @@ export const updateLesson = asyncHandler(
       },
       { new: true },
     );
+
     if (!lesson) {
-      throw new ApiError(400, "Something went wrong while updating the lesson");
+      throw new ApiError(404, "Lesson not found");
     }
 
-    const [updatedLesson] = await Lesson.aggregate([
-      {
-        $match: {
-          _id: lesson._id,
-        },
-      },
-      ...commonLessonAggregation(),
+    const courseId = lesson.course.toString();
+
+    await Promise.all([
+      redisClient.del(`lesson:${lessonId}:course:${courseId}`),
+      redisClient.del(`course:${courseId}:lessons`),
     ]);
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, updatedLesson, "Successfully updated the lesson"),
-      );
+      .json(new ApiResponse(200, {}, "Successfully updated the lesson"));
   },
 );
 
 export const deleteLesson = asyncHandler(
   async (req: Request, res: Response) => {
     const lessonId = req.params.lessonId as string;
+
     if (!lessonId) {
       throw new ApiError(400, "lession id is required");
     }
 
-    const lesson = await Lesson.findOne({
-      _id: new mongoose.Types.ObjectId(lessonId),
-    });
-    if (!lesson) {
-      throw new ApiError(400, "lesson does not exist");
-    }
+    const userId = req.user._id;
 
-    const deleteLesson = await Lesson.findByIdAndDelete(lessonId);
-    if (!deleteLesson) {
-      throw new ApiError(400, "Something went wrong while deleting lesson");
-    }
-    const deleteVideo = await deleteAtCloudinary(
-      lesson?.video.publicId,
-      "video",
-    );
-    console.log(deleteVideo);
+    const session = await mongoose.startSession();
 
-    if (!deleteVideo) {
-      throw new ApiError(
-        500,
-        "Somethng went wrong while deleting at cloudinary",
-      );
-    }
-    const progressRecords = await LessonProgress.find({
-      course: deleteLesson.course,
-    });
+    let deletedLesson;
 
-    for (const progress of progressRecords) {
-      progress.totalLessons = Math.max(0, progress.totalLessons - 1);
+    try {
+      const deletedData = await session.withTransaction(async () => {
+        deletedLesson = await Lesson.findByIdAndDelete(lessonId, {
+          session,
+        });
 
-      progress.progress =
-        progress.totalLessons === 0
-          ? 0
-          : Math.round(
-              (progress.completedLessons / progress.totalLessons) * 100,
-            );
+        if (!deletedLesson) {
+          throw new ApiError(404, "Lesson does not exist");
+        }
 
-      if (progress.totalLessons === 0) {
-        progress.progress = 0;
-        progress.completedLessons = 0;
-        progress.completeAt = null;
+        const courseId=deletedLesson.course.toString();
+
+        await LessonProgress.updateMany(
+          {
+            course: courseId,
+          },
+          [
+            {
+              $set: {
+                totalLessons: {
+                  $max: [{ $subtract: ["$totalLessons", 1] }, 0],
+                },
+
+                completedLessonIds: {
+                  $filter: {
+                    input: "$completedLessonIds",
+                    as: "completedLessonId",
+                    cond: {
+                      $ne: [
+                        "$$completedLessonId",
+                        new mongoose.Types.ObjectId(lessonId),
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $set: {
+                completedLessons: {
+                  $size: "$completedLessonIds",
+                },
+              },
+            },
+            {
+              $set: {
+                progress: {
+                  $cond: [
+                    { $eq: ["$totalLessons", 0] },
+                    0,
+                    {
+                      $round: [
+                        {
+                          $multiply: [
+                            {
+                              $divide: ["$completedLessons", "$totalLessons"],
+                            },
+                            100,
+                          ], 
+                        },
+                        0,
+                      ],
+                    },
+                  ],
+                },
+
+                completeAt: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $gt: ["$totalLessons", 0] },
+                        { $eq: ["$completedLessons", "$totalLessons"] },
+                      ],
+                    },
+                    "$completeAt",
+                    null,
+                  ],
+                },
+              },
+            },
+          ],
+          {
+            session,
+            updatePipeline: true,
+          },
+        );
+        return {
+          videoPublicId: deletedLesson.video.publicId,
+          courseId
+        };
+      });
+
+      if (!deletedData) {
+        throw new ApiError(500, "Failed to delete lesson");
       }
 
-      await progress.save();
+      const { courseId, videoPublicId } = deletedData;
+
+      await deleteAtCloudinary(videoPublicId, "video");
+
+      await Promise.all([
+        redisClient.del(`lesson:${lessonId}:course:${courseId}`),
+        redisClient.del(`course:${courseId}:lessons`),
+        redisClient.del(`lesson-progress:${userId}:course:${courseId}`),
+      ]);
+    } catch (error) {
+      throw new ApiError(500, "Failed to delete lesson");
+    } finally {
+      await session.endSession();
     }
+
     return res
       .status(200)
       .json(new ApiResponse(200, {}, "Successfully deleted the lesson"));
@@ -422,35 +560,101 @@ export const deleteLesson = asyncHandler(
 
 export const getLessonById = asyncHandler(
   async (req: Request, res: Response) => {
-    const lessonId = req.params.lessonId as string;
+    console.time("get-lesson-total");
 
-    if (!lessonId) {
-      throw new ApiError(400, "lession id is required");
+    const { courseId, lessonId } = req.params;
+
+    if (
+      typeof courseId !== "string" ||
+      !mongoose.Types.ObjectId.isValid(courseId)
+    ) {
+      throw new ApiError(400, "Invalid course id");
     }
 
-
-    const existedLesson=await Lesson.findById(lessonId)
-
-      if (!existedLesson) {
-      throw new ApiError(400, "lession not found");
+    if (
+      typeof lessonId !== "string" ||
+      !mongoose.Types.ObjectId.isValid(lessonId)
+    ) {
+      throw new ApiError(400, "Invalid lesson id");
     }
 
+    const courseObjectId = new mongoose.Types.ObjectId(courseId);
+    const lessonObjectId = new mongoose.Types.ObjectId(lessonId);
 
-    const previousLesson = await Lesson.findOne({
-      course: existedLesson.course,
-      order: { $lt: existedLesson.order },
+    const cacheKey = `lesson:${lessonId}:course:${courseId}`;
+
+    const cachedLesson = await redisClient.get(cacheKey);
+
+    if (cachedLesson) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cachedLesson),
+            "Lesson fetched successfully",
+          ),
+        );
+    }
+
+    const existedLesson = await Lesson.findOne({
+      _id: lessonObjectId,
+      course: courseObjectId,
     })
-      .sort({ order: -1 })
-      .select("_id title")
+      .select("_id course order")
       .lean();
 
-    const nextLesson = await Lesson.findOne({
-      course: existedLesson.course,
-      order: { $gt: existedLesson.order },
-    })
-      .sort({ order: 1 })
-      .select("_id title")
-      .lean();
+    console.timeEnd("find-current");
+
+    if (!existedLesson) {
+      throw new ApiError(404, "Lesson not found in this course");
+    }
+
+    console.time("parallel-queries");
+
+    const [previousLesson, nextLesson, lessonResult] = await Promise.all([
+
+      Lesson.findOne({
+        course: courseObjectId,
+        order: {
+          $lt: existedLesson.order,
+        },
+      })
+        .sort({
+          order: -1,
+        })
+        .select("_id title")
+        .lean(),
+
+      Lesson.findOne({
+        course: courseObjectId,
+        order: {
+          $gt: existedLesson.order,
+        },
+      })
+        .sort({
+          order: 1,
+        })
+        .select("_id title")
+        .lean(),
+
+      Lesson.aggregate([
+        {
+          $match: {
+            _id: lessonObjectId,
+            course: courseObjectId,
+          },
+        },
+
+        ...commonLessonAggregation(req.user._id),
+      ]),
+    ]);
+
+    const lesson = lessonResult[0];
+
+    if (!lesson) {
+      throw new ApiError(404, "Lesson not found");
+    }
 
     const navigation = {
       previousLesson: previousLesson
@@ -459,6 +663,7 @@ export const getLessonById = asyncHandler(
             title: previousLesson.title,
           }
         : null,
+
       nextLesson: nextLesson
         ? {
             id: nextLesson._id.toString(),
@@ -467,20 +672,14 @@ export const getLessonById = asyncHandler(
         : null,
     };
 
-       const [lesson] = await Lesson.aggregate([
-        {
-          $match: {
-            _id: new mongoose.Types.ObjectId(lessonId),
-          },
-        },
-        ...commonLessonAggregation(req.user._id),
-      ]);
-
-
-    if (!lesson) {
-      throw new ApiError(400, "lession not found");
-    }
-
+    await redisClient.setEx(
+      cacheKey,
+      300,
+      JSON.stringify({
+        lesson,
+        navigation,
+      }),
+    );
 
     return res.status(200).json(
       new ApiResponse(
@@ -489,7 +688,7 @@ export const getLessonById = asyncHandler(
           lesson,
           navigation,
         },
-        "Successfully get lesson by id",
+        "Lesson fetched successfully",
       ),
     );
   },
@@ -502,6 +701,22 @@ export const getAllCourseLessons = asyncHandler(
       throw new ApiError(400, "courseId is required");
     }
 
+    const cacheKey = `course:${courseId}:lessons`;
+
+    const cachedLessons = await redisClient.get(cacheKey);
+
+    if (cachedLessons) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cachedLessons),
+            "Successfully get all lessons",
+          ),
+        );
+    }
+
     const lessons = await Lesson.aggregate([
       {
         $match: {
@@ -511,71 +726,12 @@ export const getAllCourseLessons = asyncHandler(
       ...commonLessonAggregation(req.user?._id),
     ]);
 
+    await redisClient.setEx(cacheKey, 300, JSON.stringify(lessons));
+
     return res
       .status(200)
       .json(
         new ApiResponse(200, lessons || [], "Successfully get all lessons"),
       );
-  },
-);
-
-export const updateLessonVideo = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { lessonId } = req.params;
-    if (!lessonId) {
-      throw new ApiError(400, "course id is required");
-    }
-    if (!req.file) {
-      throw new ApiError(400, "Video file is missing");
-    }
-    const existedLesson = await Lesson.findById(lessonId);
-    if (!existedLesson) {
-      throw new ApiError(404, "lesson does not exist");
-    }
-    const videoLocalPath = req.file.path;
-    const video = await uploadAtCloudinary(videoLocalPath);
-    if (!video) {
-      throw new ApiError(
-        500,
-        "Somethng went wrong while uploading at cloudinary",
-      );
-    }
-    const userId = req.user._id;
-    const updatedVideo = await Lesson.findOneAndUpdate(
-      {
-        _id: lessonId,
-        createdBy: userId,
-      },
-      {
-        $set: {
-          video: {
-            url: video.secure_url,
-            publicId: video.public_id,
-          },
-        },
-      },
-      { new: true },
-    );
-    if (!updatedVideo) {
-      throw new ApiError(
-        400,
-        "Something went wrong while updating lesson video",
-      );
-    }
-
-    const deleteVideo = await deleteAtCloudinary(
-      updatedVideo.video?.publicId,
-      "video",
-    );
-
-    if (!deleteVideo) {
-      throw new ApiError(
-        500,
-        "Somethng went wrong while deleting at cloudinary",
-      );
-    }
-    return res
-      .status(200)
-      .json(new ApiResponse(200, {}, "Successfully updated lesson video"));
   },
 );

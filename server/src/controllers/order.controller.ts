@@ -7,6 +7,7 @@ import { Order } from "../models/order.model.js";
 import { OrderStatus } from "../types/order.enum.js";
 import mongoose from "mongoose";
 import type { PipelineStage } from "mongoose";
+import redisClient from "../config/redis.js";
 
 function commonOrderAggregation(): PipelineStage[] {
   return [
@@ -93,7 +94,6 @@ function commonOrderAggregation(): PipelineStage[] {
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
-  console.log(courseId);
   
   const userId = req.user._id;
   if (!courseId) {
@@ -147,12 +147,26 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
 
 export const getAllOrders = asyncHandler(
   async (req: Request, res: Response) => {
+    const cacheKey=`orders:all`
+    const cacheOrders=await redisClient.get(cacheKey)
+    if(cacheOrders){
+      return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cacheOrders), "Successfully get all orders"));
+    }
     const orders = await Order.aggregate([
       {
         $match: {},
       },
       ...commonOrderAggregation(),
     ]);
+
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(orders)
+    );
+
     return res
       .status(200)
       .json(new ApiResponse(200, orders || [], "Successfully get all orders"));
@@ -161,6 +175,16 @@ export const getAllOrders = asyncHandler(
 export const getOrderById = asyncHandler(
   async (req: Request, res: Response) => {
     const orderId = req.params.orderId as string;
+
+    const cacheKey=`order:${orderId}`
+
+    const cacheOrder=await redisClient.get(cacheKey)
+    
+    if(cacheOrder){
+      return res
+      .status(200)
+      .json(new ApiResponse(200, JSON.parse(cacheOrder), "Successfully get order"));
+    }
     if (!orderId) {
       throw new ApiError(400, "orderid is required");
     }
@@ -172,6 +196,13 @@ export const getOrderById = asyncHandler(
       },
       ...commonOrderAggregation(),
     ]);
+
+    await redisClient.setEx(
+      cacheKey,
+      60,
+      JSON.stringify(order)
+    )
+
     return res
       .status(200)
       .json(new ApiResponse(200, order , "Successfully get order"));
