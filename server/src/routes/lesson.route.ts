@@ -5,7 +5,6 @@ import {
   getAllCourseLessons,
   getLessonById,
   updateLesson,
-  updateLessonVideo,
 } from "../controllers/lesson.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
@@ -35,18 +34,18 @@ router
   .route("/delete/:lessonId")
   .delete(verifyJWT, verifyRoles(["admin","instructor"]), deleteLesson);
 router
-  .route("/lesson/:lessonId")
+  .route("/lesson/:courseId/:lessonId")
   .get(verifyJWT,verifyEnrollment, getLessonById);
 router
   .route("/:courseId")
   .get(getLoggedInUserOrIgnore, getAllCourseLessons);
-  router
-  .route("/update-video/:lessonId")
-  .patch(
-    verifyJWT,
-    verifyRoles(["admin","instructor"]),
-    upload.single("video"),
-    updateLessonVideo,
-  );
+  // router
+  // .route("/update-video/:lessonId")
+  // .patch(
+  //   verifyJWT,
+  //   verifyRoles(["admin","instructor"]),
+  //   upload.single("video"),
+  //   updateLessonVideo,
+  // );
 
 export default router;

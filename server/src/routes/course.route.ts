@@ -7,7 +7,7 @@ import {
   verifyRoles,
 } from "../middlewares/auth.middleware.js";
 import { Router } from "express";
-import { createCourse, deleteCourse, getAllCourses, getCourseById, updateCourse, updateCourseThumbnail } from "../controllers/course.controller.js";
+import { createCourse, deleteCourse, getAllCourses, getCourseById, updateCourse } from "../controllers/course.controller.js";
 import { validate } from "../Schemas/validate.js";
 import { createCourseSchema, updateCourseSchema } from "../Schemas/course.schema.js";
 
@@ -34,14 +34,6 @@ router
 router
   .route("/")
   .get(getLoggedInUserOrIgnore,getAllCourses);
-  router
-  .route("/update-thumbnail/:courseId")
-  .patch(
-    verifyJWT,
-    verifyRoles(["admin","instructor"]),
-    upload.single("thumbnail"),
-    updateCourseThumbnail,
-  );
 
 export default router;
 
