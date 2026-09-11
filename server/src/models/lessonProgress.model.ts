@@ -1,6 +1,7 @@
 import mongoose, { Model, Schema } from "mongoose";
 import type { ICourse } from "../interfaces/course.interface.js";
 import type { ILessonProgress } from "../interfaces/lessonProgress.interface.js";
+
 const lessonProgressSchema = new Schema<ILessonProgress>(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", index: true },

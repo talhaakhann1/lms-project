@@ -56,7 +56,7 @@ const courseSchema = new Schema<ICourse>(
   { timestamps: true },
 );
 
-
+courseSchema.index({instructor:1})
 
 export const Course: Model<ICourse> = mongoose.model<ICourse>(
   "Course",
