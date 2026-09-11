@@ -66,8 +66,8 @@ export default function page() {
   }, [fetchAllCourses])
 
   return (
-    <div className="px-6 pt-24">
-      <div className="mx-auto w-full max-w-7xl">
+    <div className="px-6 pt-24 pb-16">
+      <div className="mx-auto w-full max-w-6xl">
 
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

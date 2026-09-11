@@ -8,6 +8,7 @@ import { Card, CardContent } from "../../ui/card"
 import { Progress } from "../../ui/progress"
 import { StatWidgetProps } from "./StatsWidget";
 import heroImage from "@/public/images/illustrations/hero-dashboard.webp"
+import { Skeleton } from "../../ui/skeleton";
 
 interface EnrolledCourse {
   id: string;
@@ -27,6 +28,7 @@ interface EnrolledCourse {
 
 interface DashboardHomeProps {
   studentName: string
+  isLoading: boolean | null;
   enrolledCourses?: EnrolledCourse[]
   currentCourse?: EnrolledCourse
   stats: StatWidgetProps[]
@@ -77,6 +79,7 @@ const staggerContainer: Variants = {
 export function DashboardHome({
   studentName,
   enrolledCourses,
+  isLoading,
   currentCourse,
   stats
 }: DashboardHomeProps) {
@@ -84,116 +87,192 @@ export function DashboardHome({
   const hasEnrolled = enrolledCourses?.length ?? 0
   return (
     <div className="flex flex-col gap-14 pb-16">
-    
+
       <motion.section
         initial="hidden"
         animate="show"
         variants={fadeUp}
         aria-labelledby="hero-heading"
-        className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12"
+        className="
+    grid min-h-[390px] grid-cols-1 gap-8
+    lg:grid-cols-[minmax(0,1fr)_400px]
+    lg:gap-12
+    xl:grid-cols-[minmax(0,1fr)_440px]
+  "
       >
-     
-        <div className="flex flex-col">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Welcome back, {studentName}
-            </h1>
-            <p className="text-sm text-muted-foreground sm:text-base">
-              {hasEnrolled
-                ? "A little progress each day adds up to big results."
-                : "Let's find your first course and get started."}
-            </p>
-          </div>
+        {/* LEFT */}
+        <div className="flex min-w-0 flex-col">
+          {isLoading ? (
+            <>
+              {/* Header skeleton */}
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-9 w-72" />
+                <Skeleton className="h-5 w-80 max-w-full" />
+              </div>
 
-          <div className="mt-10 lg:mt-20 flex flex-col items-start gap-4">
-            <span className="text-sm font-medium text-primary">
-              {hasEnrolled ? "Continue your journey" : "Get started"}
-            </span>
+              {/* Hero content skeleton */}
+              <div className="mt-10 flex flex-col items-start gap-4 lg:mt-20">
+                <Skeleton className="h-4 w-36" />
 
-            <h2
-              id="hero-heading"
-              className="text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl"
-            >
-              {hasEnrolled
-                ? "Pick up right where you left off."
-                : "Your learning journey starts here."}
-            </h2>
+                <Skeleton className="h-9 w-[420px] max-w-full" />
 
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {hasEnrolled
-                ? "You're making steady progress. Jump back into your current lesson, or explore something new to add to your learning path."
-                : "Explore our course catalog and enroll in your first course. Once you're enrolled, your progress and next lesson will show up right here."}
-            </p>
+                <div className="w-full max-w-md space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
 
-            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-              {hasEnrolled ? (
-                <>
-                  <Button>
-                    <Link
-                      className="flex items-center gap-2"
-                      href={
-                        currentCourse?.currentLesson
-                          ? `/dashboard/courses/${currentCourse.id}/lessons/${currentCourse.currentLesson.id}`
-                          : `/dashboard/courses/${enrolledCourses?.[0].id}`
-                      }
-                    >
-                      Continue Learning
-                      <ArrowRight className="size-4" strokeWidth={1.75} />
-                    </Link>
-                  </Button>
-                  <Button variant="outline">
-                    <Link href="/dashboard/courses">Browse More Courses</Link>
-                  </Button>
-                </>
-              ) : (
-                <Button>
-                  <Link className="flex items-center gap-2" href="/dashboard/courses">
-                    Browse Courses
-                    <ArrowRight className="size-4" strokeWidth={1.75} />
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </div>
+                <div className="mt-2 flex gap-3">
+                  <Skeleton className="h-9 w-40" />
+                  <Skeleton className="h-9 w-40" />
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  Welcome back, {studentName}
+                </h1>
+
+                <p className="text-sm text-muted-foreground sm:text-base">
+                  {hasEnrolled
+                    ? "A little progress each day adds up to big results."
+                    : "Let's find your first course and get started."}
+                </p>
+              </div>
+
+              <div className="mt-10 flex flex-col items-start gap-4 lg:mt-20">
+                <span className="text-sm font-medium text-primary">
+                  {hasEnrolled ? "Continue your journey" : "Get started"}
+                </span>
+
+                <h2
+                  id="hero-heading"
+                  className="text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl"
+                >
+                  {hasEnrolled
+                    ? "Pick up right where you left off."
+                    : "Your learning journey starts here."}
+                </h2>
+
+                <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {hasEnrolled
+                    ? "You're making steady progress. Jump back into your current lesson, or explore something new to add to your learning path."
+                    : "Explore our course catalog and enroll in your first course. Once you're enrolled, your progress and next lesson will show up right here."}
+                </p>
+
+                <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                  {hasEnrolled ? (
+                    <>
+                      <Button>
+                        <Link
+                          className="flex items-center gap-2"
+                          href={
+                            currentCourse?.currentLesson
+                              ? `/dashboard/courses/${currentCourse.id}/lessons/${currentCourse.currentLesson.id}`
+                              : `/dashboard/courses/${enrolledCourses?.[0]?.id}`
+                          }
+                        >
+                          Continue Learning
+                          <ArrowRight className="size-4" strokeWidth={1.75} />
+                        </Link>
+                      </Button>
+
+                      <Button variant="outline">
+                        <Link href="/dashboard/courses">
+                          Browse More Courses
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <Button>
+                      <Link
+                        className="flex items-center gap-2"
+                        href="/dashboard/courses"
+                      >
+                        Browse Courses
+                        <ArrowRight className="size-4" strokeWidth={1.75} />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-       <div className="relative min-h-[420px] w-full rounded-xl bg-background lg:min-h-full ">    
-            <Image
-              src={heroImage}
-              alt="Illustration of a student studying with a laptop and open book"
-              fill
-              sizes="(min-width: 1024px) 480px, 100vw"
-              className="object-contain scale-102"
-              priority
-            />
+        {/* RIGHT IMAGE */}
+        <div
+          className="
+      relative hidden
+      h-[390px] w-[400px]
+      shrink-0 self-center justify-self-end
+      lg:block
+      xl:h-[410px] xl:w-[440px]
+    "
+        >
+          <Image
+            src={heroImage}
+            alt="Illustration of a student studying with a laptop and open book"
+            fill
+            priority
+            sizes="(min-width: 1280px) 440px, 400px"
+            className="object-contain object-center"
+          />
         </div>
       </motion.section>
 
       <motion.section
-        initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={staggerContainer}
         aria-label="Learning overview"
         className="grid grid-cols-1 gap-4 sm:grid-cols-3"
       >
-        {stats.map((stat) => (
-          <motion.div key={stat.label} variants={fadeUp}>
-            <Card className="min-w-0 rounded-xl border-border p-5 shadow-sm">
+        {isLoading ? (
+          Array.from({ length: stats.length || 4 }).map((_, index) => (
+            <Card
+              key={index}
+              className="min-w-0 rounded-xl border-border p-5 shadow-sm"
+            >
               <CardContent className="flex items-center gap-4 p-0">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                  <stat.icon className="size-4.5" strokeWidth={1.75} />
-                </span>
-                <div className="space-y-0.5">
-                  <p className="text-2xl font-bold tracking-tight text-foreground">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <Skeleton className="size-10 shrink-0 rounded-lg" />
+
+                <div className="space-y-2">
+                  <Skeleton className="h-7 w-12" />
+                  <Skeleton className="h-4 w-24" />
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        ))}
+          ))
+        ) : (
+          stats.map((stat) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeUp}
+              className="h-full"
+            >
+              <Card className="h-full min-w-0 rounded-xl border-border p-5 shadow-sm">
+                <CardContent className="flex h-full items-center gap-4 p-0">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                    <stat.icon className="size-4.5" strokeWidth={1.75} />
+                  </span>
+
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-2xl font-bold tracking-tight text-foreground">
+                      {stat.value}
+                    </p>
+
+                    <p className="text-sm leading-5 text-muted-foreground">
+                      {stat.label}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))
+        )}
       </motion.section>
 
       {/* My Courses */}
@@ -212,8 +291,37 @@ export function DashboardHome({
             View all
           </Link>
         </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Card
+                key={index}
+                className="overflow-hidden rounded-xl border-border p-0 shadow-sm"
+              >
+                <Skeleton className="aspect-video w-full" />
 
-        {hasEnrolled ? (
+                <CardContent className="space-y-4 p-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-3 w-10" />
+                    </div>
+
+                    <Skeleton className="h-1.5 w-full" />
+                  </div>
+
+                  <Skeleton className="h-3 w-2/3" />
+                  <Skeleton className="h-9 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : hasEnrolled ? (
           <motion.div
             initial="hidden"
             animate="show"
@@ -223,7 +331,9 @@ export function DashboardHome({
             {enrolledCourses?.map((course) => (
               <motion.div key={course.id} variants={fadeUp}>
                 <Card
-                  onClick={() => router.push(`/dashboard/courses/${course.id}`)}
+                  onClick={() =>
+                    router.push(`/dashboard/courses/${course.id}`)
+                  }
                   className="flex h-full flex-col gap-4 overflow-hidden rounded-xl border-border p-0 shadow-sm transition-shadow duration-200 hover:shadow-md"
                 >
                   <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -241,6 +351,7 @@ export function DashboardHome({
                       <h3 className="text-base font-semibold leading-snug text-foreground">
                         {course.title}
                       </h3>
+
                       <p className="text-sm text-muted-foreground">
                         {course.instructor.name}
                       </p>
@@ -249,11 +360,16 @@ export function DashboardHome({
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Progress</span>
+
                         <span className="font-medium text-foreground">
                           {course.progressPercent}%
                         </span>
                       </div>
-                      <Progress value={course.progressPercent} className="h-1.5" />
+
+                      <Progress
+                        value={course.progressPercent}
+                        className="h-1.5"
+                      />
                     </div>
 
                     <p className="text-xs text-muted-foreground">
@@ -271,11 +387,14 @@ export function DashboardHome({
                           className="flex items-center gap-2"
                         >
                           <span>Continue Learning</span>
-                          <ArrowRight className="size-4" strokeWidth={1.75} />
+                          <ArrowRight
+                            className="size-4"
+                            strokeWidth={1.75}
+                          />
                         </Link>
                       ) : (
                         <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <span>Completed</span>
+                          Completed
                         </span>
                       )}
                     </Button>
@@ -287,6 +406,8 @@ export function DashboardHome({
         ) : (
           <EmptyCoursesState />
         )}
+
+
       </section>
 
       <motion.section

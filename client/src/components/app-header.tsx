@@ -22,13 +22,19 @@ export function AppHeader({ variant }: AppHeaderProps) {
 	const navLinks =
 		variant === "admin" ? adminNavLinks : studentNavLinks;
 
-	const activeItem = navLinks.find(
-		(item) =>
+	const rootRoute = variant === "admin" ? "/admin" : "/dashboard";
+
+	const activeItem = navLinks.find((item) => {
+		if (item.url === rootRoute) {
+			return pathname === rootRoute;
+		}
+
+		return (
 			pathname === item.url ||
 			pathname.startsWith(`${item.url}/`)
-	);
+		);
+	});
 	const { state, open } = useSidebar()
-	console.log("sidebar:", { state, open })
 	return (
 		<header
 			className={cn(
@@ -36,23 +42,23 @@ export function AppHeader({ variant }: AppHeaderProps) {
 			)}
 		>
 			<div className="flex items-center gap-2">
-					<SidebarTrigger className="" />
-					<Separator
-						className="mr-2 data-[orientation=vertical]:h-4 md:hidden"
-						orientation="vertical"
-					/>
-					<AppBreadcrumbs
-						page={
-							activeItem
-								? {
-									title: activeItem.title,
-									icon: activeItem.icon,
-								}
-								: {
-									title: "Dashboard",
-								}
-						}
-					/>
+				<SidebarTrigger className="" />
+				<Separator
+					className="mr-2 data-[orientation=vertical]:h-4 md:hidden"
+					orientation="vertical"
+				/>
+				<AppBreadcrumbs
+					page={
+						activeItem
+							? {
+								title: activeItem.title,
+								icon: activeItem.icon,
+							}
+							: {
+								title: "Dashboard",
+							}
+					}
+				/>
 			</div>
 			<div className="flex items-center gap-2">
 				<ThemeToggle

@@ -87,7 +87,7 @@ export function LessonListItem({
   const router = useRouter()
   const params = useParams()
   const courseId = params.courseId
-  const isLocked = !isEnrolled;
+  const isLocked = !isEnrolled && role!="admin";
   const status: LessonStatus = isLocked ? "locked" : "available";
   const statusConfigItem = statusConfig[status];
 
@@ -133,7 +133,7 @@ export function LessonListItem({
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isLocked
             ? "cursor-not-allowed opacity-60"
-            : "cursor-pointer"
+            : "cursor-pointer" 
         )}
       >
         <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary text-sm font-semibold text-secondary-foreground">

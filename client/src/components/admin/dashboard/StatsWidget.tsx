@@ -1,5 +1,5 @@
 import { LucideIcon } from "lucide-react";
-import { Card, CardContent} from "../../ui/card";
+import { Card, CardContent } from "../../ui/card";
 import { motion } from "framer-motion";
 
 export interface StatWidgetProps {
@@ -17,13 +17,21 @@ function StatWidget({ label, value, supportingText, icon: Icon }: StatWidgetProp
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
+      className="h-full"
     >
-      <Card className="min-h-0 border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md">
-        <CardContent className="flex flex-col gap-3 p-5">
+      <Card className="h-full border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md">
+        <CardContent className="flex h-full flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{label}</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-              <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+            <span className="min-h-5 text-sm text-muted-foreground">
+              {label}
+            </span>
+
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
+              <Icon
+                className="h-4 w-4"
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
             </div>
           </div>
 
@@ -33,7 +41,9 @@ function StatWidget({ label, value, supportingText, icon: Icon }: StatWidgetProp
             </span>
           </div>
 
-          <span className="text-xs text-muted-foreground">{supportingText}</span>
+          <span className="min-h-8 text-xs leading-4 text-muted-foreground">
+            {supportingText}
+          </span>
         </CardContent>
       </Card>
     </motion.div>

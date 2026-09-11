@@ -74,8 +74,6 @@ export default function CourseDetailsPage() {
       const errorMessage =
         axiosError.response?.data.message ?? "Something went wrong";
 
-    
-
       showError("Error in fetching course", errorMessage);
     } finally {
       setIsLoading(false)

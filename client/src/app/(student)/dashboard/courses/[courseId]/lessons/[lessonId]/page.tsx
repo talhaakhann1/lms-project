@@ -48,9 +48,9 @@ export default function LessonDetailPage() {
         lessons,
         progress
       ] = await Promise.all([
-        lessonService.getById(lessonId),
+        lessonService.getById(courseId,lessonId),
         lessonService.getCourseLessons(courseId),
-        progressService.getLessonProgress(lessonId)
+        progressService.getLessonProgress(courseId)
       ])
       setLesson(lesson.lesson)
       setNavigation(lesson.navigation)
@@ -66,6 +66,7 @@ export default function LessonDetailPage() {
       setIsLoading(false)
     }
   }, [])
+  
   const completeLesson = async () => {
     if (!lesson) return;
     if (!isVideoEnded(watchedSeconds, duration)) {
@@ -73,7 +74,7 @@ export default function LessonDetailPage() {
       return;
     }
     try {
-      await progressService.completeLesson(lesson.id);
+      await progressService.completeLesson(courseId,lesson.id);
 
       showSuccess("Lesson marked completed");
       console.log(navigation);

@@ -21,12 +21,12 @@ export function MobileNav({ isLoggedIn, onLogout, isLoading }: MobileNavProps) {
     const [open, setOpen] = React.useState(false);
 
     return (
-        <div className="md:hidden">
+        <div className="lg:hidden">
             <Button
                 aria-controls="mobile-menu"
                 aria-expanded={open}
                 aria-label="Toggle menu"
-                className="md:hidden"
+                className="lg:hidden"
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="outline"

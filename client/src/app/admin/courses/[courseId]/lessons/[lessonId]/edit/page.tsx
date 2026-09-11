@@ -19,6 +19,7 @@ export default function EditLessonPage() {
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [lesson, setLesson] = useState<Lesson|null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+    const courseId = params.courseId as string
 
   const fetchFormData = useCallback(async () => {
       setIsLoading(true)
@@ -26,7 +27,7 @@ export default function EditLessonPage() {
         const [lesson,
           instructors,
         ] = await Promise.all([
-          lessonService.getById(lessonId),
+          lessonService.getById(courseId,lessonId),
           authService.getInstructors(),
           
         ])

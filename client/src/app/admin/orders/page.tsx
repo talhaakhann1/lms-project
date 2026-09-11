@@ -36,7 +36,7 @@ export default function AdminOrdersPage() {
 		fetchOrders()
 	}, [fetchOrders])
 	return (
-		<main className="w-full max-w-5xl min-w-0 space-y-8 overflow-hidden px-4 pb-16 sm:px-4 lg:px-2">
+		<main className="w-full min-w-0 space-y-8 overflow-hidden px-4 pb-16 sm:px-4 lg:px-2">
   <div className="flex min-w-0 flex-col gap-8">
     <div className="space-y-1">
       <h1 className="font-heading text-3xl font-bold tracking-tight">

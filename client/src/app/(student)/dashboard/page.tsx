@@ -13,7 +13,6 @@ import { showError } from "@/src/components/ui/toaster";
 import { enrollmentService } from "@/src/services/enrollment.service";
 import { EnrolledCourse } from "@/src/types/interfaces/enrollment.interface";
 import { DashboardHome } from "@/src/components/admin/dashboard/DashboardHome";
-import StudentDashboardSkeleton from "./loading";
 import { useCallback } from "react";
 
 export default function StudentDashboardPage() {
@@ -79,17 +78,18 @@ export default function StudentDashboardPage() {
     getStudentMetrics()
   }, [getStudentMetrics])
 
-  if (isLoading) {
-    return (
-      <StudentDashboardSkeleton />
-    )
-  }
+  // if (isLoading) {
+  //   return (
+  //     <StudentDashboardSkeleton />
+  //   )
+  // }
 
   return (
     <DashboardHome
       studentName={studentName}
       enrolledCourses={enrolledCourses}
       currentCourse={currentCourse}
+      isLoading={isLoading}
       stats={stats}
     />
   );

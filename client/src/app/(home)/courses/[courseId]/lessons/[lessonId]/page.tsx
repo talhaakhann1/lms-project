@@ -34,10 +34,9 @@ export default function LessonDetailPage() {
       const [lesson,
         // lessons
       ] = await Promise.all([
-        lessonService.getById(lessonId),
+        lessonService.getById(courseId,lessonId),
         lessonService.getCourseLessons(courseId)
       ])
-      console.log("lesson", lesson);
 
       setLesson(lesson.lesson)
       setNavigation(lesson.navigation)

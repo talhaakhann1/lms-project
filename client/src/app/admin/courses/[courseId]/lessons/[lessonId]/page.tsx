@@ -61,16 +61,12 @@ export default function LessonDetailPage() {
       const [lesson,
         lessons
       ] = await Promise.all([
-        lessonService.getById(lessonId),
+        lessonService.getById(courseId,lessonId),
         lessonService.getCourseLessons(courseId),
       ])
       setLesson(lesson.lesson)
       setNavigation(lesson.navigation)
       setLessons(lessons)
-      
-      
-      
-      showSuccess("Successfully get the lesson")
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
       const errorMessage =
@@ -91,7 +87,7 @@ export default function LessonDetailPage() {
       return;
     }
     try {
-      await progressService.completeLesson(lesson.id);
+      await progressService.completeLesson(courseId,lesson.id);
 
       showSuccess("Lesson marked completed");
       router.push(`/admin/courses/${courseId}/lessons/${navigation?.nextLesson?.id}`);

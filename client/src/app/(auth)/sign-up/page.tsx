@@ -53,8 +53,6 @@ const GithubIcon = (
   </svg>
 );
 
-
-
 const socialProviders = [
   {
     label: "Continue with Google",

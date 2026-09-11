@@ -6,7 +6,6 @@ export const metadata: Metadata = {
     "Complete your payment securely and get access to your Edvra course.",
 };
 
-
 export default function ExploreLayout({
   children,
 }: Readonly<{

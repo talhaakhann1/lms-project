@@ -21,6 +21,7 @@ export default function EditCoursePage() {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const params = useParams()
     const courseId = params.courseId as string
+
     const fetchFormData = useCallback(
         async (courseId: string) => {
         setIsLoading(true)
@@ -42,6 +43,7 @@ export default function EditCoursePage() {
             setIsLoading(false)
         }
     },[])
+    
     useEffect(() => {
         fetchFormData(courseId)
     }, [fetchFormData])

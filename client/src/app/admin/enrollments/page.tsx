@@ -38,7 +38,7 @@ export default function EnrollmentsPage() {
     fetchEnrollments()
   },[fetchEnrollments])
   return (
-   <main className="w-full max-w-5xl min-w-0 space-y-8 overflow-x-hidden px-2 pb-16 sm:px-3 lg:px-4">
+  <main className="w-full min-w-0 max-w-none space-y-8 overflow-x-hidden px-2 pb-16 sm:px-3 lg:px-4">
   <div className="min-w-0 space-y-1.5">
     <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
       Enrollments
