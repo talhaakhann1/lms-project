@@ -66,9 +66,9 @@ class LessonService {
     return response.data.data;
   }
 
-  async getById(lessonId: string): Promise<LessonDetails> {
+  async getById(courseId:string,lessonId: string): Promise<LessonDetails> {
     const response = await api.get<ApiResponse<LessonDetails>>(
-      `/lessons/lesson/${lessonId}`
+      `/lessons/lesson/${courseId}/${lessonId}`
     );
 
     return response.data.data;

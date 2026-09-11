@@ -38,7 +38,7 @@ class ReviewService {
   }
 
   async delete(reviewId: string): Promise<void> {
-    await api.delete(`/api/reviews/${reviewId}`);
+    await api.delete(`/reviews/${reviewId}`);
   }
 
   async getCourseReviews(courseId: string): Promise<Review[]> {
