@@ -120,7 +120,7 @@ export function Header() {
             <Button
               disabled={isLoading}
               onClick={logoutHandler}
-              className="h-10 shrink-0 px-4 text-sm"
+              className="h-10 shrink-0 px-4 text-base"
             >
               {isLoading ? (
                 <>
