@@ -28,3 +28,4 @@ connectRedis()
 app.get("/health", (req: Request, res: Response) => {
   res.json("All working good");
 });
+

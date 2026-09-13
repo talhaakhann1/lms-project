@@ -7,5 +7,4 @@ export declare const updateCourse: (req: Request, res: Response, next: import("e
 export declare const deleteCourse: (req: Request, res: Response, next: import("express-serve-static-core").NextFunction) => void;
 export declare const getCourseById: (req: Request, res: Response, next: import("express-serve-static-core").NextFunction) => void;
 export declare const getAllCourses: (req: Request, res: Response, next: import("express-serve-static-core").NextFunction) => void;
-export declare const updateCourseThumbnail: (req: Request, res: Response, next: import("express-serve-static-core").NextFunction) => void;
 //# sourceMappingURL=course.controller.d.ts.map

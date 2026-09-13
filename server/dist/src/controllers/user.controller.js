@@ -80,10 +80,11 @@ export const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
     const accessTokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const refreshTokenMaxAge = 30 * 24 * 60 * 60 * 1000;
+    const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
     };
     return res
         .status(200)
@@ -110,10 +111,11 @@ export const logoutUser = asyncHandler(async (req, res) => {
     if (!user) {
         throw new ApiError(404, "User not found");
     }
+    const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
     };
     return res
         .status(200)
@@ -210,7 +212,11 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
 export const getUsers = asyncHandler(async (_, res) => {
     const users = await User.aggregate([
         {
-            $match: {},
+            $match: {
+                role: {
+                    $in: ["student", "instructor"]
+                }
+            },
         },
         {
             $project: {
@@ -300,12 +306,11 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     if (bio)
         updatedData.bio = bio;
     if (req.file) {
-        console.log(req.file);
         const avatarLocalPath = req.file.path;
         if (!avatarLocalPath) {
             throw new ApiError(400, "Avatar path not found");
         }
-        const avatar = await uploadAtCloudinary(avatarLocalPath);
+        const avatar = await uploadAtCloudinary(avatarLocalPath, { type: "avatar" });
         if (!avatar) {
             throw new ApiError(500, "Something went wrong while uploading the avatar.");
         }

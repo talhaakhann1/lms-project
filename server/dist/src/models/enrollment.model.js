@@ -7,5 +7,6 @@ const enrollmentSchema = new Schema({
         default: Date.now()
     },
 }, { timestamps: true });
+enrollmentSchema.index({ course: 1, user: 1 }, { unique: true });
 export const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
 //# sourceMappingURL=enrollment.model.js.map

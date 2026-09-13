@@ -1,40 +1,72 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
-import { ZodNull } from "zod/v3";
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-export const uploadAtCloudinary = async (localPath) => {
+export const uploadAtCloudinary = async (localPath, options) => {
     try {
         if (!localPath)
             return null;
-        console.log(localPath);
+        const type = options?.type ?? "general";
+        const transformation = type === "avatar"
+            ? [
+                {
+                    width: 128,
+                    height: 128,
+                    crop: "fill",
+                    gravity: "face",
+                    quality: "auto",
+                    fetch_format: "auto",
+                },
+            ]
+            : type === "thumbnail"
+                ? [
+                    {
+                        width: 1200,
+                        height: 675,
+                        crop: "fill",
+                        quality: "auto",
+                        fetch_format: "auto",
+                    },
+                ]
+                : [
+                    {
+                        quality: "auto",
+                        fetch_format: "auto",
+                    },
+                ];
         const response = await cloudinary.uploader.upload(localPath, {
             resource_type: "auto",
             folder: "lms",
+            transformation,
         });
-        console.log("response", response);
-        await fs.unlink(localPath);
-        console.log("reach");
         return response;
     }
     catch (error) {
-        await fs.unlink(localPath);
+        console.error("Cloudinary upload failed:", error);
         return null;
+    }
+    finally {
+        try {
+            await fs.unlink(localPath);
+        }
+        catch (error) {
+            console.error("Failed to remove temporary file:", error);
+        }
     }
 };
 export const deleteAtCloudinary = async (publicId, resourceType = "image") => {
     try {
         if (!publicId)
             return null;
-        const response = await cloudinary.uploader.destroy(publicId, {
+        return await cloudinary.uploader.destroy(publicId, {
             resource_type: resourceType,
         });
-        return response;
     }
     catch (error) {
+        console.error("Cloudinary delete failed:", error);
         return null;
     }
 };

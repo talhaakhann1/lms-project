@@ -13,5 +13,14 @@ const reviewSchema = new Schema({
         ref: "Course",
     },
 }, { timestamps: true });
+reviewSchema.index({
+    course: 1,
+});
+reviewSchema.index({
+    user: 1,
+    course: 1,
+}, {
+    unique: true,
+});
 export const Review = mongoose.model("Review", reviewSchema);
 //# sourceMappingURL=review.model.js.map

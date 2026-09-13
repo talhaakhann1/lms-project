@@ -4,6 +4,7 @@ import { Course } from "../models/course.model.js";
 import { Review } from "../models/review.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redis.js";
 function commonReviewAggregation() {
     return [
         {
@@ -84,17 +85,10 @@ export const createReview = asyncHandler(async (req, res) => {
         course: course._id,
         user: userId,
     });
-    const [createdReview] = await Review.aggregate([
-        {
-            $match: {
-                _id: review._id,
-            },
-        },
-        ...commonReviewAggregation(),
-    ]);
+    await redisClient.del(`review:course:${courseId}`);
     return res
         .status(201)
-        .json(new ApiResponse(201, createdReview, "Successfully created the review"));
+        .json(new ApiResponse(201, {}, "Successfully created the review"));
 });
 export const updateReview = asyncHandler(async (req, res) => {
     const { comment } = req.body;
@@ -114,17 +108,9 @@ export const updateReview = asyncHandler(async (req, res) => {
     if (!review) {
         throw new ApiError(404, "review does not exist");
     }
-    const [updatedReview] = await Review.aggregate([
-        {
-            $match: {
-                _id: review._id,
-            },
-        },
-        ...commonReviewAggregation(),
-    ]);
     return res
         .status(200)
-        .json(new ApiResponse(200, updatedReview, "Successfully updated the review"));
+        .json(new ApiResponse(200, {}, "Successfully updated the review"));
 });
 export const deleteReview = asyncHandler(async (req, res) => {
     const { reviewId } = req.params;
@@ -135,6 +121,7 @@ export const deleteReview = asyncHandler(async (req, res) => {
     if (!review) {
         throw new ApiError(404, "review does not exist");
     }
+    await redisClient.del(`review:course:${review?.course}`);
     return res
         .status(200)
         .json(new ApiResponse(200, {}, "Successfully deleted the review"));
@@ -144,6 +131,13 @@ export const getCourseReviewById = asyncHandler(async (req, res) => {
     if (!courseId) {
         throw new ApiError(400, "Invalid course id");
     }
+    const cacheKey = `review:course:${courseId}`;
+    const cacheReview = await redisClient.get(cacheKey);
+    if (cacheReview) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse, "Successfully get all review by courseId"));
+    }
     const review = await Review.aggregate([
         {
             $match: {
@@ -152,6 +146,7 @@ export const getCourseReviewById = asyncHandler(async (req, res) => {
         },
         ...commonReviewAggregation(),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(review));
     return res
         .status(200)
         .json(new ApiResponse(200, review || [], "Successfully get all review by courseId"));

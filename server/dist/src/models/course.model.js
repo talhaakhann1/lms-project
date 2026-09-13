@@ -50,5 +50,6 @@ const courseSchema = new Schema({
     },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
+courseSchema.index({ instructor: 1 });
 export const Course = mongoose.model("Course", courseSchema);
 //# sourceMappingURL=course.model.js.map

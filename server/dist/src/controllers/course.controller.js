@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose, {} from "mongoose";
 import { Lesson } from "../models/lesson.model.js";
 import { Types } from "mongoose";
+import redisClient from "../config/redis.js";
 export function commonCourseAggregation(userId) {
     const matchExpr = userId
         ? {
@@ -95,11 +96,10 @@ export function commonCourseAggregation(userId) {
 }
 export const createCourse = asyncHandler(async (req, res) => {
     const { title, description, tagline, price, learningOutcomes, requirements, level, instructor, isPublished, category, } = req.body;
-    const userId = req.user._id;
     if (!req.file) {
         throw new ApiError(404, "thumbnail file is required");
     }
-    const thumbnailLocalPath = req.file.path;
+    const userId = req.user._id;
     const existedCourse = await Course.findOne({
         title,
         createdBy: userId,
@@ -107,7 +107,10 @@ export const createCourse = asyncHandler(async (req, res) => {
     if (existedCourse) {
         throw new ApiError(400, "Course with this title already exist");
     }
-    const thumbnail = await uploadAtCloudinary(thumbnailLocalPath);
+    const thumbnailLocalPath = req.file.path;
+    const thumbnail = await uploadAtCloudinary(thumbnailLocalPath, {
+        type: "thumbnail",
+    });
     if (!thumbnail) {
         throw new ApiError(500, "Somethng went wrong while uploading at cloudinary");
     }
@@ -127,21 +130,18 @@ export const createCourse = asyncHandler(async (req, res) => {
         category,
         createdBy: userId,
     });
-    const [createdCourse] = await Course.aggregate([
-        {
-            $match: {
-                _id: new mongoose.Types.ObjectId(course._id),
-            },
-        },
-        ...commonCourseAggregation(),
-    ]);
+    await redisClient.del(`courses:${userId}`);
     return res
         .status(201)
-        .json(new ApiResponse(201, createdCourse, "Successfully created the course"));
+        .json(new ApiResponse(201, {}, "Successfully created the course"));
 });
 export const updateCourse = asyncHandler(async (req, res) => {
     const { title, description, tagline, instructor, category, level, price, learningOutcomes, requirements, isPublished, } = req.body;
-    console.log("REs", req.body);
+    const { courseId } = req.params;
+    if (!courseId) {
+        throw new ApiError(400, "courseId is required");
+    }
+    const userId = req.user._id;
     const updateData = {};
     if (title !== undefined)
         updateData.title = title;
@@ -163,18 +163,15 @@ export const updateCourse = asyncHandler(async (req, res) => {
         updateData.requirements = requirements;
     if (isPublished !== undefined)
         updateData.isPublished = isPublished;
-    const { courseId } = req.params;
-    if (!courseId) {
-        throw new ApiError(400, "courseId is required");
-    }
     const existedCourse = await Course.findById(courseId);
     if (!existedCourse) {
         throw new ApiError(404, "course does not exist");
     }
     if (req.file) {
-        console.log("file", req.file);
         const thumbnailLocalPath = req.file.path;
-        const uploadedThumbnail = await uploadAtCloudinary(thumbnailLocalPath);
+        const uploadedThumbnail = await uploadAtCloudinary(thumbnailLocalPath, {
+            type: "thumbnail",
+        });
         if (!uploadedThumbnail) {
             throw new ApiError(500, "Something went wrong while uploading the thumbnail.");
         }
@@ -193,20 +190,15 @@ export const updateCourse = asyncHandler(async (req, res) => {
         runValidators: true,
     });
     if (!course) {
-        throw new ApiError(400, "Something went wrong while updating course");
+        throw new ApiError(404, "Lesson not found");
     }
-    const [updatedCourse] = await Course.aggregate([
-        {
-            $match: {
-                _id: course._id,
-                isPublished: true,
-            },
-        },
-        ...commonCourseAggregation(req.user._id),
+    await Promise.all([
+        redisClient.del(`courses:${userId}`),
+        redisClient.del(`course:${courseId}`),
     ]);
     return res
         .status(200)
-        .json(new ApiResponse(200, updatedCourse, "Successfully updated the course"));
+        .json(new ApiResponse(200, {}, "Successfully updated the course"));
 });
 export const deleteCourse = asyncHandler(async (req, res) => {
     const { courseId } = req.params;
@@ -214,27 +206,32 @@ export const deleteCourse = asyncHandler(async (req, res) => {
     if (!courseId) {
         throw new ApiError(400, "courseId is required");
     }
-    const existedCourse = await Course.findOne({
-        _id: courseId,
-        createdBy: userId,
-    });
-    if (!existedCourse) {
-        throw new ApiError(404, "course does not exist or access denied");
-    }
     const session = await mongoose.startSession();
+    let deletedCourse;
     try {
-        await session.withTransaction(async () => {
-            await Course.deleteOne({
+        const deletedData = await session.withTransaction(async () => {
+            deletedCourse = await Course.findOneAndDelete({
                 _id: courseId,
+                createdBy: userId,
             }).session(session);
             await Lesson.deleteMany({
                 courseId: courseId,
             }).session(session);
+            return {
+                thumbnailPublicId: deletedCourse?.thumbnail.publicId,
+            };
         });
-        console.log("Delete Course Transaction committed successfully.");
+        const thumbnailPublicId = deletedData.thumbnailPublicId;
+        if (thumbnailPublicId) {
+            await deleteAtCloudinary(thumbnailPublicId, "image");
+        }
+        await Promise.all([
+            redisClient.del(`courses:${userId}`),
+            redisClient.del(`course:${courseId}`),
+            redisClient.del(`lessons:course:${courseId}`),
+        ]);
     }
     catch (error) {
-        console.error("Delete Course Transaction aborted due to error:", error);
         throw new ApiError(500, "Failed to delete course");
     }
     finally {
@@ -249,9 +246,12 @@ export const getCourseById = asyncHandler(async (req, res) => {
     if (!courseId) {
         throw new ApiError(400, "courseId is required");
     }
-    const existedCourse = await Course.findById(courseId);
-    if (!existedCourse) {
-        throw new ApiError(404, "course does not exist");
+    const cacheKey = `course:${courseId}`;
+    const cacheCourses = await redisClient.get(cacheKey);
+    if (cacheCourses) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheCourses), "Successfully get course by id by redis"));
     }
     const [course] = await Course.aggregate([
         {
@@ -262,11 +262,23 @@ export const getCourseById = asyncHandler(async (req, res) => {
         },
         ...commonCourseAggregation(req.user?._id),
     ]);
+    if (!course) {
+        throw new ApiError(404, "course does not exist");
+    }
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(course));
     return res
         .status(200)
         .json(new ApiResponse(200, course || [], "Successfully get course by id"));
 });
 export const getAllCourses = asyncHandler(async (req, res) => {
+    const userId = req.user?._id;
+    const cacheKey = `courses:${userId}`;
+    const cacheCourses = await redisClient.get(cacheKey);
+    if (cacheCourses) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheCourses), "Successfully get all published course"));
+    }
     const courses = await Course.aggregate([
         {
             $match: {
@@ -275,48 +287,9 @@ export const getAllCourses = asyncHandler(async (req, res) => {
         },
         ...commonCourseAggregation(req.user?._id),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(courses));
     return res
         .status(200)
         .json(new ApiResponse(200, courses || [], "Successfully get all published course"));
-});
-export const updateCourseThumbnail = asyncHandler(async (req, res) => {
-    const { courseId } = req.params;
-    if (!courseId) {
-        throw new ApiError(400, "course id is required");
-    }
-    if (!req.file) {
-        throw new ApiError(400, "thumbnail file is missing");
-    }
-    const existedCourse = await Course.findById(courseId);
-    if (!existedCourse) {
-        throw new ApiError(404, "course does not exist");
-    }
-    const thumbnailLocalPath = req.file.path;
-    const thumbnail = await uploadAtCloudinary(thumbnailLocalPath);
-    if (!thumbnail) {
-        throw new ApiError(500, "Somethng went wrong while uploading at cloudinary");
-    }
-    const userId = req.user._id;
-    const updatedCourse = await Course.findOneAndUpdate({
-        _id: courseId,
-        createdBy: userId,
-    }, {
-        $set: {
-            thumbnail: {
-                url: thumbnail.secure_url,
-                publicId: thumbnail.public_id,
-            },
-        },
-    }, { new: true });
-    if (!updatedCourse) {
-        throw new ApiError(400, "Something went wrong while updating course thumbnail");
-    }
-    const deleteThumbnail = await deleteAtCloudinary(existedCourse.thumbnail?.publicId, "image");
-    if (!deleteThumbnail) {
-        throw new ApiError(500, "Somethng went wrong while deleting at cloudinary");
-    }
-    return res
-        .status(200)
-        .json(new ApiResponse(200, {}, "Successfully updated course thumbnail"));
 });
 //# sourceMappingURL=course.controller.js.map

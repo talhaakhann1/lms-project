@@ -5,6 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Order } from "../models/order.model.js";
 import { OrderStatus } from "../types/order.enum.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redis.js";
 function commonOrderAggregation() {
     return [
         {
@@ -89,7 +90,6 @@ function commonOrderAggregation() {
 }
 export const createOrder = asyncHandler(async (req, res) => {
     const { courseId } = req.params;
-    console.log(courseId);
     const userId = req.user._id;
     if (!courseId) {
         throw new ApiError(400, "course id is required");
@@ -139,18 +139,33 @@ export const createOrder = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, order, "Successfully created order"));
 });
 export const getAllOrders = asyncHandler(async (req, res) => {
+    const cacheKey = `orders:all`;
+    const cacheOrders = await redisClient.get(cacheKey);
+    if (cacheOrders) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheOrders), "Successfully get all orders"));
+    }
     const orders = await Order.aggregate([
         {
             $match: {},
         },
         ...commonOrderAggregation(),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(orders));
     return res
         .status(200)
         .json(new ApiResponse(200, orders || [], "Successfully get all orders"));
 });
 export const getOrderById = asyncHandler(async (req, res) => {
     const orderId = req.params.orderId;
+    const cacheKey = `order:${orderId}`;
+    const cacheOrder = await redisClient.get(cacheKey);
+    if (cacheOrder) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheOrder), "Successfully get order"));
+    }
     if (!orderId) {
         throw new ApiError(400, "orderid is required");
     }
@@ -162,6 +177,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
         },
         ...commonOrderAggregation(),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(order));
     return res
         .status(200)
         .json(new ApiResponse(200, order, "Successfully get order"));

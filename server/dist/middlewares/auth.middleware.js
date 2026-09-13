@@ -57,20 +57,28 @@ export const verifyEnrollment = asyncHandler(async (req, res, next) => {
     if (!req.user) {
         throw new ApiError(401, "Unauthorized request");
     }
-    if (req.user.role == UserRoles.ADMIN) {
-        next();
+    if (req.user.role === UserRoles.ADMIN) {
+        return next();
     }
     let courseId = req.params.courseId;
-    if (!courseId) {
+    if (!courseId && req.params.lessonId) {
         const lesson = await Lesson.findById(req.params.lessonId);
         if (!lesson) {
             throw new ApiError(404, "Lesson not found");
         }
         courseId = lesson.course.toString();
+        req.lessonContext = {
+            id: lesson._id.toString(),
+            course: lesson.course,
+            order: lesson.order,
+        };
+    }
+    if (!courseId) {
+        throw new ApiError(400, "Course ID is required");
     }
     const userId = req.user._id;
     const enrollment = await Enrollment.findOne({
-        course: courseId,
+        course: new mongoose.Types.ObjectId(courseId),
         user: userId,
     });
     if (!enrollment) {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createLesson, deleteLesson, getAllCourseLessons, getLessonById, updateLesson, updateLessonVideo, } from "../controllers/lesson.controller.js";
+import { createLesson, deleteLesson, getAllCourseLessons, getLessonById, updateLesson, } from "../controllers/lesson.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { getLoggedInUserOrIgnore, verifyEnrollment, verifyJWT, verifyRoles, } from "../middlewares/auth.middleware.js";
 import { validate } from "../Schemas/validate.js";
@@ -15,13 +15,18 @@ router
     .route("/delete/:lessonId")
     .delete(verifyJWT, verifyRoles(["admin", "instructor"]), deleteLesson);
 router
-    .route("/lesson/:lessonId")
-    .get(verifyJWT, getLessonById);
+    .route("/lesson/:courseId/:lessonId")
+    .get(verifyJWT, verifyEnrollment, getLessonById);
 router
     .route("/:courseId")
     .get(getLoggedInUserOrIgnore, getAllCourseLessons);
-router
-    .route("/update-video/:lessonId")
-    .patch(verifyJWT, verifyRoles(["admin", "instructor"]), upload.single("video"), updateLessonVideo);
+// router
+// .route("/update-video/:lessonId")
+// .patch(
+//   verifyJWT,
+//   verifyRoles(["admin","instructor"]),
+//   upload.single("video"),
+//   updateLessonVideo,
+// );
 export default router;
 //# sourceMappingURL=lesson.route.js.map

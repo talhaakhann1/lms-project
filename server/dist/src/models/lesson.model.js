@@ -49,5 +49,9 @@ const lessonSchema = new Schema({
         ref: "User",
     },
 }, { timestamps: true });
+lessonSchema.index({
+    course: 1,
+    order: 1,
+});
 export const Lesson = mongoose.model("Lesson", lessonSchema);
 //# sourceMappingURL=lesson.model.js.map

@@ -4,7 +4,7 @@ import { verifyEnrollment, verifyJWT, verifyRoles } from "../middlewares/auth.mi
 import { getAllEnrollment } from "../controllers/enrollment.controller.js";
 import { completeLesson, getLessonProgress } from "../controllers/lessonProgress.controller.js";
 const router = Router();
-router.route("/complete-lesson/:lessonId").patch(verifyJWT, verifyEnrollment, completeLesson);
-router.route("/:lessonId").get(verifyJWT, verifyEnrollment, getLessonProgress);
+router.route("/complete-lesson/:courseId/:lessonId").patch(verifyJWT, verifyEnrollment, completeLesson);
+router.route("/:courseId").get(verifyJWT, verifyEnrollment, getLessonProgress);
 export default router;
 //# sourceMappingURL=lessonProgress.route.js.map

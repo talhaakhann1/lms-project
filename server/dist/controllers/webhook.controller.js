@@ -23,10 +23,14 @@ export const stripeWebhook = asyncHandler(async (req, res) => {
     }
     switch (event.type) {
         case "checkout.session.completed": {
-            console.log("reached");
             const checkoutSession = event.data.object;
+            console.log("checkout session metadata:", checkoutSession.metadata);
+            console.log("payment_intent:", checkoutSession.payment_intent);
+            if (!checkoutSession.payment_intent) {
+                return res.sendStatus(200);
+            }
             const paymentIntent = await stripe.paymentIntents.retrieve(checkoutSession.payment_intent);
-            const { orderId, userId } = paymentIntent.metadata;
+            const { orderId, userId } = checkoutSession.metadata;
             console.log(paymentIntent.metadata);
             if (!orderId || !userId) {
                 throw new ApiError(400, "Missing metadata");
@@ -41,8 +45,8 @@ export const stripeWebhook = asyncHandler(async (req, res) => {
                         return;
                     }
                     const order = await Order.findOneAndUpdate({
-                        _id: orderId,
-                        user: userId,
+                        _id: new mongoose.Types.ObjectId(orderId),
+                        user: new mongoose.Types.ObjectId(userId),
                     }, {
                         $set: {
                             isPaid: true,
@@ -55,7 +59,7 @@ export const stripeWebhook = asyncHandler(async (req, res) => {
                     if (!order) {
                         throw new ApiError(404, "Order not found");
                     }
-                    if (paymentIntent.amount !== order.totalAmount * 100) {
+                    if (paymentIntent.amount !== Math.round(order.totalAmount * 100)) {
                         throw new ApiError(400, "Payment amount mismatch");
                     }
                     const existing = await Payment.findOne({
@@ -105,6 +109,7 @@ export const stripeWebhook = asyncHandler(async (req, res) => {
             }
             catch (error) {
                 console.log("webhook", error);
+                return res.status(500).send("Webhook handler failed");
             }
             finally {
                 await session.endSession();

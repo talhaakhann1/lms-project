@@ -34,6 +34,12 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json({ limit: "16kb" }));
 app.use(cookieParser());
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        message: "Server is healthy and ok",
+    });
+});
 app.use("/api/auth", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/reviews", reviewRouter);

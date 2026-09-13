@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
 import { LessonProgress } from "../models/lessonProgress.model.js";
+import redisClient from "../config/redis.js";
 function commonEnrollmentAggregation() {
     return [
         {
@@ -85,6 +86,13 @@ export const getEnrollmentById = asyncHandler(async (req, res) => {
     if (!enrollementId) {
         throw new ApiError(400, "enrollment is required");
     }
+    const cacheKey = `enrollment:${enrollementId}`;
+    const cacheEnrollment = await redisClient.get(cacheKey);
+    if (cacheEnrollment) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheEnrollment), "Successfully get all enrollement "));
+    }
     const [enrollments] = await Enrollment.aggregate([
         {
             $match: {
@@ -93,23 +101,40 @@ export const getEnrollmentById = asyncHandler(async (req, res) => {
         },
         ...commonEnrollmentAggregation(),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(enrollments));
     return res
         .status(200)
         .json(new ApiResponse(200, enrollments || [], "Successfully get enrollement by id"));
 });
 export const getAllEnrollment = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const cacheKey = `enrollments:${userId}`;
+    const cacheEnrollments = await redisClient.get(cacheKey);
+    if (cacheEnrollments) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheEnrollments), "Successfully get all enrollement "));
+    }
     const enrollments = await Enrollment.aggregate([
         {
             $match: {},
         },
         ...commonEnrollmentAggregation(),
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(enrollments));
     return res
         .status(200)
         .json(new ApiResponse(200, enrollments || [], "Successfully get all enrollement "));
 });
 export const getStudentEnrollCourses = asyncHandler(async (req, res) => {
     const userId = req.user._id;
+    const cacheKey = `studentEnrollCourses:${userId}`;
+    const cacheEnrollCourses = await redisClient.get(cacheKey);
+    if (cacheEnrollCourses) {
+        return res
+            .status(200)
+            .json(new ApiResponse(200, JSON.parse(cacheEnrollCourses), "Successfully get student's enrolled courses"));
+    }
     const enrolledCourses = await LessonProgress.aggregate([
         {
             $match: {
@@ -221,6 +246,7 @@ export const getStudentEnrollCourses = asyncHandler(async (req, res) => {
             },
         },
     ]);
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(enrolledCourses));
     return res
         .status(200)
         .json(new ApiResponse(200, enrolledCourses, "Successfully fetched enrolled courses"));

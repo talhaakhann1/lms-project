@@ -9,8 +9,8 @@ export declare const signInSchema: z.ZodObject<{
     password: z.ZodString;
 }, z.core.$strip>;
 export declare const updateUserProfileSchema: z.ZodObject<{
-    fullName: z.ZodOptional<z.ZodString>;
-    title: z.ZodOptional<z.ZodString>;
-    bio: z.ZodOptional<z.ZodString>;
+    fullName: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
+    title: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
+    bio: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
 }, z.core.$strip>;
 //# sourceMappingURL=user.schema.d.ts.map

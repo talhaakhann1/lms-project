@@ -8,5 +8,7 @@ export interface ILessonProgress {
     progress: number;
     completeAt?: Date | null;
     enrolledAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 //# sourceMappingURL=lessonProgress.interface.d.ts.map
