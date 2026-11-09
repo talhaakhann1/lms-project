@@ -41,9 +41,12 @@ export const stripeWebhook = asyncHandler(
           return res.sendStatus(200);
         }
 
-        const paymentIntent = await stripe.paymentIntents.retrieve(
-          checkoutSession.payment_intent as string,
-        );
+        const paymentIntentId =
+          typeof checkoutSession.payment_intent === "string"
+            ? checkoutSession.payment_intent
+            : (checkoutSession.payment_intent as { id: string }).id;
+
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
         const { orderId, userId } = checkoutSession.metadata as {
           orderId: string;
@@ -91,14 +94,6 @@ export const stripeWebhook = asyncHandler(
 
             if (paymentIntent.amount !== Math.round(order.totalAmount * 100)) {
               throw new ApiError(400, "Payment amount mismatch");
-            }
-
-            const existing = await Payment.findOne({
-              transactionId: paymentIntent.id,
-            });
-
-            if (existing) {
-              return res.sendStatus(200);
             }
 
             await Payment.create(
@@ -159,8 +154,25 @@ export const stripeWebhook = asyncHandler(
         }
       }
 
+      case "checkout.session.expired": {
+        const checkoutSession = event.data.object;
+        const { orderId } = (checkoutSession.metadata || {}) as {
+          orderId?: string;
+        };
+
+        if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
+          await Order.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(orderId), isPaid: false },
+            { $set: { status: OrderStatus.FAILED } }
+          );
+        }
+
+        return res.sendStatus(200);
+      }
+
       default:
         return res.sendStatus(200);
     }
   },
 );
+
