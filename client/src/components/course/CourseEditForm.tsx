@@ -83,14 +83,14 @@ function FormMessage({ children }: { children?: React.ReactNode }) {
 export type CourseFormValues = z.input<typeof updateCourseSchema>;
 
 
-const cardVariants:Variants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
 };
 
 const buttonTap = { scale: 0.97 };
 const buttonHover = { scale: 1.02 };
-const buttonTransition:Transition = { duration: 0.15, ease: "easeOut" };
+const buttonTransition: Transition = { duration: 0.15, ease: "easeOut" };
 
 interface CourseFormProps {
   course?: Course | null,
@@ -98,6 +98,8 @@ interface CourseFormProps {
 }
 
 export function CourseEditForm({ course, instructors }: CourseFormProps) {
+
+  
   const router = useRouter()
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(updateCourseSchema),
@@ -121,7 +123,7 @@ export function CourseEditForm({ course, instructors }: CourseFormProps) {
 
   async function onSubmit(data: CourseFormValues) {
     try {
-       await courseService.update(courseId, data)
+      await courseService.update(courseId, data)
       showSuccess("Succesfully updated the course")
       router.push(`/admin/courses/${courseId}`)
     } catch (error) {
@@ -354,7 +356,7 @@ export function CourseEditForm({ course, instructors }: CourseFormProps) {
                 </FormItem>
               )}
             />
-        
+
             <Controller
               control={form.control}
               name="isPublished"

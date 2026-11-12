@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 import {  CourseCardSkeletonGrid } from "@/src/components/cards/CourseCardSkeleton";
 import { CourseCard } from "@/src/components/cards/CourseCard";
 import { useAppSelector } from "@/src/store/hook";
+import CourseEditForm from "@/src/components/course/CourseEditForm";
+import { CoursesEmptyState } from "@/src/components/landing/about/pages/Coursesemptystate";
 
 const containerVariants = {
   hidden: {},
@@ -60,45 +62,53 @@ export default function ExploreCoursePage() {
   }, [fetchAllCourses])
 
   return (
-    <div className="flex flex-col gap-14 px-4 pb-16 md:px-6">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-1.5">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              All Courses
-            </h1>
-            <p className="mt-2 max-w-2xl text-muted-foreground">
-              Explore our collection of courses, build new skills, and learn at
-              your own pace with engaging lessons and practical resources.
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen ">
 
-        {isLoading ? (
-          <CourseCardSkeletonGrid />
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
-          >
-            {courses.map((course) => (
-              <motion.div
-                key={course.id}
-                variants={itemVariants}
-                className="h-full"
-              >
-                <CourseCard
-                  isLoggedIn={isLoggedIn}
-                  course={course}
-                  role={role}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+  {/* ── Page header band ── */}
+  <div className="border-b border-border bg-background">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
+      <div className="flex flex-col gap-3">
+        <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+          All Courses
+        </h1>
+        <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
+          Explore our collection of courses, build new skills, and learn at
+          your own pace with engaging lessons and practical resources.
+        </p>
       </div>
     </div>
+  </div>
+
+  {/* ── Course grid ── */}
+  <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+    {isLoading ? (
+      <CourseCardSkeletonGrid />
+    ) : courses.length === 0 ?(
+      <CoursesEmptyState/>
+    ) : (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
+      >
+        {courses.map((course) => (
+          <motion.div
+            key={course.id}
+            variants={itemVariants}
+            className="h-full"
+          >
+            <CourseCard
+              isLoggedIn={isLoggedIn}
+              course={course}
+              role={role}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    )}
+  </div>
+
+</div>
   )
 }

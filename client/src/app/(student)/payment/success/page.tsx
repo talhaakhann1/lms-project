@@ -16,6 +16,9 @@ export default function PaymentSuccessPage() {
 
   const orderId = searchParams.get("orderId");
   const courseId = searchParams.get("courseId");
+  console.log("orderId",orderId);
+  console.log("courseId",courseId);
+  
  const fetchPayment = useCallback(async () => {
   setIsLoading(true);
 

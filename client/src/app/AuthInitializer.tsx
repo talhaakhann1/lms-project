@@ -19,6 +19,11 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 
         if (!cancelled) {
           dispatch(logIn(user));
+          if (user) {
+            dispatch(logIn(user));
+          } else {
+            dispatch(logOut());
+          }
         }
       } catch {
         if (!cancelled) {

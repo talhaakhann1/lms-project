@@ -47,7 +47,8 @@ export function LessonListPage() {
   }, [courseId])
 
   return (
-    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-[1fr_320px] lg:px-8 lg:py-5">
+  <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-10 
+                lg:grid-cols-[1fr_360px] lg:gap-8 lg:px-8 lg:py-14">
       <LessonList
         isLoading={isLoading} lessons={lessons} courseId={course?.id}
         isEnrolled={course?.isEnrolled}

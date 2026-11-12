@@ -45,10 +45,17 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (
+  const isAuthEndpoint =
+      originalRequest.url?.includes("/auth/refresh-token") ||
+      originalRequest.url?.includes("/auth/sign-in") ||
+      originalRequest.url?.includes("/auth/sign-up");
+
+      if (
       error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+      !originalRequest._retry &&
+      !originalRequest._retry &&
+      !isAuthEndpoint
+      ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

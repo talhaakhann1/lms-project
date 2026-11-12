@@ -18,7 +18,7 @@ export function AppShell({
       <SidebarProvider
       
        className="relative mx-auto h-full w-full lg:border-x">
-        <FullWidthDivider className="top-14 z-60 -translate-y-px" />
+        {/* <FullWidthDivider className="top-14 z-60 -translate-y-px" /> */}
 
         <AppSidebar variant={variant} />
 

@@ -95,14 +95,14 @@ const defaultValues = {
 } satisfies Partial<CourseFormValues>;
 
 
-const cardVariants:Variants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
 };
 
 const buttonTap = { scale: 0.97 };
 const buttonHover = { scale: 1.02 };
-const buttonTransition:Transition = { duration: 0.15, ease: "easeOut" };
+const buttonTransition: Transition = { duration: 0.15, ease: "easeOut" };
 
 interface CourseFormProps {
   instructors?: Instructor[] | []
@@ -118,8 +118,9 @@ export function CourseCreateForm({ instructors }: CourseFormProps) {
   const { isSubmitting, errors } = form.formState;
 
   async function onSubmit(data: CourseFormValues) {
+    console.log(data)
     try {
-     await courseService.create(data)
+      await courseService.create(data)
       showSuccess("Succesfully created the course")
       router.push("/admin/courses")
     } catch (error) {

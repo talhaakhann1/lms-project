@@ -5,7 +5,7 @@ import {
   Layers,
   PlayCircle,
 } from "lucide-react";
-import { useAppSelector } from "@/src/store/hook";
+import { useAppDispatch, useAppSelector } from "@/src/store/hook";
 import { AxiosError } from "axios";
 import ApiResponse from "@/src/utils/ApiResponse";
 import { useState, useEffect } from "react";
@@ -14,11 +14,14 @@ import { enrollmentService } from "@/src/services/enrollment.service";
 import { EnrolledCourse } from "@/src/types/interfaces/enrollment.interface";
 import { DashboardHome } from "@/src/components/admin/dashboard/DashboardHome";
 import { useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { setHasEnrolled } from "@/src/store/enrollmentSlice";
 
 export default function StudentDashboardPage() {
   const user = useAppSelector((state) => state.auth.user)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [enrolledCourses, setEnrollmentCourses] = useState<EnrolledCourse[]>([])
+  const dispatch = useAppDispatch();
 
   const STUDENT_NAME = user?.fullName
   const studentName = STUDENT_NAME
@@ -30,6 +33,7 @@ export default function StudentDashboardPage() {
     try {
       const enrolledCourses = await enrollmentService.getMyCourses()
       setEnrollmentCourses(enrolledCourses)
+  
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
 
@@ -74,9 +78,15 @@ export default function StudentDashboardPage() {
       course.progressPercent < 100
   );
 
+
+
   useEffect(() => {
     getStudentMetrics()
-  }, [getStudentMetrics])
+
+  if (enrolledCourses) {
+    dispatch(setHasEnrolled(enrolledCourses.length > 0));
+  }
+  }, [getStudentMetrics, dispatch])
 
   // if (isLoading) {
   //   return (

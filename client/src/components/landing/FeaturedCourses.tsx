@@ -15,6 +15,7 @@ import { useAppSelector } from "@/src/store/hook";
 import { showError } from "@/src/components/ui/toaster";
 import { AxiosError } from "axios";
 import ApiResponse from "@/src/utils/ApiResponse";
+import { CoursesEmptyState } from "./about/pages/Coursesemptystate";
 
 
 
@@ -38,32 +39,32 @@ const itemVariants = {
 
 
 export function FeaturedCourses() {
-   const [isLoading, setIsLoading] = useState<boolean>(false)
-      const [courses, setCourses] = useState<Course[]>([])
-      const user=useAppSelector((state)=>state.auth.user)
-      const userRole=user?.role
-    
-      const fetchAllCourses = async () => {
-          setIsLoading(true)
-          try {
-              const res = await courseService.getAll()
-             
-             setCourses(res);
-          } catch (error) {
-            const axiosError = error as AxiosError<ApiResponse<unknown>>;
-            
-                const errorMessage =
-                  axiosError.response?.data.message ?? "Something went wrong";
-            
-            
-                showError("Error in fetching courses", errorMessage);
-          } finally {
-              setIsLoading(false)
-          }
-      }
-      useEffect(() => {
-          fetchAllCourses()
-      }, [])
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [courses, setCourses] = useState<Course[]>([])
+  const user = useAppSelector((state) => state.auth.user)
+  const userRole = user?.role
+
+  const fetchAllCourses = async () => {
+    setIsLoading(true)
+    try {
+      const res = await courseService.getAll()
+
+      setCourses(res);
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+
+      const errorMessage =
+        axiosError.response?.data.message ?? "Something went wrong";
+
+
+      showError("Error in fetching courses", errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  useEffect(() => {
+    fetchAllCourses()
+  }, [])
   return (
     <section
       id="courses"
@@ -123,27 +124,31 @@ export function FeaturedCourses() {
 
         {isLoading ? (
           <CourseCardSkeletonGrid />
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
-          >
-            {courses?.slice(0, 3).map((course) => (
+        )
+          : courses.length === 0 ? (
+            <CoursesEmptyState />
+          )
+            : (
               <motion.div
-                key={course.id}
-                variants={itemVariants}
-                className="h-full"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
               >
-                <CourseCard
-                  course={course}
-                  role={userRole}
-                />
+                {courses?.slice(0, 3).map((course) => (
+                  <motion.div
+                    key={course.id}
+                    variants={itemVariants}
+                    className="h-full"
+                  >
+                    <CourseCard
+                      course={course}
+                      role={userRole}
+                    />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
-        )}
+            )}
       </div>
     </section>
   );

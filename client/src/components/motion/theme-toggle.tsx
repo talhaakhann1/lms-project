@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useState, type ComponentPropsWithoutRef } from "react";
 import { ActionSwapIcon } from "./action-swap";
+import BlurFadeThemeTransition, { useBlurFadeThemeTransition } from "@/components/ui/BlurFadeThemeTransition";
 import { cn } from "@/src/lib/utils";
 
 export type ThemeVariant = "rectangle" | "circle" | "circle-blur";
@@ -141,12 +142,14 @@ export function ThemeToggle({
   ...rest
 }: ThemeToggleProps) {
   const { isDark, mounted, toggle } = useThemeToggle({ variant, start });
+  const { triggerTransition, isAnimating, theme } = useBlurFadeThemeTransition();
 
   return (
     <button
       type="button"
       aria-label={mounted && isDark ? "Switch to light mode" : "Switch to dark mode"}
-      onClick={toggle}
+      disabled={isAnimating}
+      onClick={() => triggerTransition()}
       className={cn("flex items-center justify-center", className)}
       {...rest}
     >

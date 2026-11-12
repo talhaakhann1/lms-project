@@ -8,6 +8,7 @@ import { AppBreadcrumbs } from "../components/app-breadcrumbs";
 import { adminNavLinks, studentNavLinks } from "../components/app-shared";
 import { SearchIcon, BellIcon, HeadsetIcon } from "lucide-react";
 import { ThemeToggle } from "./motion/theme-toggle";
+import BlurFadeThemeTransition from "@/components/ui/BlurFadeThemeTransition";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -37,47 +38,58 @@ export function AppHeader({ variant }: AppHeaderProps) {
 	const { state, open } = useSidebar()
 	return (
 		<header
-			className={cn(
-				"sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2 bg-background px-4 md:px-6"
-			)}
-		>
-			<div className="flex items-center gap-2">
-				<SidebarTrigger className="" />
-				<Separator
-					className="mr-2 data-[orientation=vertical]:h-4 md:hidden"
-					orientation="vertical"
-				/>
-				<AppBreadcrumbs
-					page={
-						activeItem
-							? {
-								title: activeItem.title,
-								icon: activeItem.icon,
-							}
-							: {
-								title: "Dashboard",
-							}
-					}
-				/>
-			</div>
-			<div className="flex items-center gap-2">
-				<ThemeToggle
-					variant="rectangle"
-					start="bottom-up"
-					className="rounded-xl border border-border bg-transparent p-2.5"
-					iconClassName="h-4 w-5"
-				/>
-				<Button aria-label="Search" size="icon" variant="ghost">
-					<SearchIcon
-					/>
-				</Button>
-				<Button aria-label="Support" size="icon" variant="ghost">
-					<Link href={"/contact"}>
-						<HeadsetIcon
-						/>
-					</Link>
-				</Button>
-			</div>
-		</header>
+  className={cn(
+    "sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-4",
+    "border-b border-border bg-background/95 px-4 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 md:px-6"
+  )}
+>
+  {/* ── Left: trigger + breadcrumb ── */}
+  <div className="flex items-center gap-3">
+    <SidebarTrigger className="size-8 shrink-0 rounded-xl border border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground" />
+
+    <Separator
+      orientation="vertical"
+      className="h-5 data-[orientation=vertical]:h-5 text-border md:hidden"
+    />
+
+    <AppBreadcrumbs
+      page={
+        activeItem
+          ? { title: activeItem.title, icon: activeItem.icon }
+          : { title: "Dashboard" }
+      }
+    />
+  </div>
+
+  {/* ── Right: actions ── */}
+  <div className="flex items-center gap-1.5">
+    <ThemeToggle
+      variant="rectangle"
+      start="bottom-up"
+      className="size-8 shrink-0 rounded-xl border border-border bg-transparent p-2"
+      iconClassName="h-4 w-4"
+    />
+
+    <Button
+      aria-label="Search"
+      size="icon"
+      variant="ghost"
+      className="size-8 rounded-xl border border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
+    >
+      <SearchIcon className="size-4" />
+    </Button>
+
+    <Button
+      aria-label="Support"
+      size="icon"
+      variant="ghost"
+      className="size-8 rounded-xl border border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
+    >
+      <Link href="/contact">
+        <HeadsetIcon className="size-4" />
+      </Link>
+    </Button>
+  </div>
+</header>
 	);
 }

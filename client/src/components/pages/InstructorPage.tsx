@@ -5,7 +5,6 @@ import { AnimatedTooltip } from "../ui/animated-tooltip";
 import { FeatureSection } from "../ui/feature-section";
 import { FullWidthDivider } from "../ui/full-width-divider";
 
-function InstructorsPage() {
   const Instructors = [
   {
     id: 1,
@@ -39,14 +38,6 @@ function InstructorsPage() {
   },
 ];
 
-
-const containerVariants: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
-  },
-};
- 
 const fadeUpVariants: Variants = {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
@@ -56,50 +47,71 @@ const sectionRevealVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
- 
+const containerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
+function InstructorsPage() {
   return (
-    <div className="relative mx-auto flex w-full max-w-7xl items-center justify-center overflow-hidden border-x bg-background">
-  <motion.div
-    variants={containerVariants}
-    initial="hidden"
-    animate="show"
-    className="flex w-full flex-col items-center justify-center px-6 py-20"
-  >
-    <motion.h2
-      variants={fadeUpVariants}
-      className="mb-8 text-center text-2xl font-bold text-foreground md:text-4xl lg:text-7xl"
+    <section
+      aria-labelledby="instructors-heading"
+      className="bg-muted/40 py-16 lg:py-24"
     >
-      Meet Our Instructors
-    </motion.h2>
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-    <motion.p
-      variants={fadeUpVariants}
-      className="mb-4 text-center text-base text-muted-foreground md:text-lg"
-    >
-       Meet the experienced instructor who will guide you through your learning journey
-    </motion.p>
+        {/* ── Section header ── */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <motion.span
+            variants={itemVariants}
+            className="inline-flex h-8 items-center gap-2 rounded-[10px] border border-border bg-background px-3 text-xs font-medium text-muted-foreground shadow-sm"
+          >
+            <span className="relative flex size-1.5" aria-hidden="true">
+              <span className="absolute inline-flex size-full rounded-full bg-primary opacity-60" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+            </span>
+            Learn from the best
+          </motion.span>
 
-    <motion.div
+          <motion.h2
+            variants={itemVariants}
+            id="instructors-heading"
+            className="mt-4 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+          >
+            Meet your instructors
+          </motion.h2>
+
+          <motion.p
+            variants={itemVariants}
+            className="mt-4 text-base leading-relaxed text-muted-foreground"
+          >
+            Practitioners, not just teachers. Every instructor brings real
+            industry experience into the classroom.
+          </motion.p>
+        </motion.div>
+
+        {/* ── Instructor grid ── */}
+       <motion.div
       variants={fadeUpVariants}
       className="mb-10 flex w-full flex-row items-center justify-center"
     >
       <AnimatedTooltip items={Instructors} />
     </motion.div>
 
-    <motion.section
-      variants={sectionRevealVariants}
-      className="w-full px-4"
-    >
-      <FullWidthDivider />
-
-      <FeatureSection />
-
-      <FullWidthDivider />
-    </motion.section>
-  </motion.div>
-</div>
+      </div>
+    </section>
   );
 }
 
-
-export default InstructorsPage
+export default InstructorsPage;

@@ -13,6 +13,8 @@ import { CourseCardSkeleton, CourseCardSkeletonGrid } from "@/src/components/car
 import { CourseCard } from "@/src/components/cards/CourseCard";
 import { useAppSelector } from "@/src/store/hook";
 import { useCallback } from "react";
+import { BookOpen } from "lucide-react";
+import { CoursesEmptyState } from "@/src/components/landing/about/pages/Coursesemptystate";
 
 const containerVariants = {
   hidden: {},
@@ -44,10 +46,7 @@ export default function page() {
     setIsLoading(true)
     try {
       const res = await courseService.getAll()
-      console.log("API response:", res);
-      // console.log(res);
       setCourses(res);
-      // toast
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
 
@@ -57,39 +56,63 @@ export default function page() {
       console.error(errorMessage);
 
       showError("Something went wrong", errorMessage);
+      setCourses([])
     } finally {
       setIsLoading(false)
     }
-  },[])
+  }, [])
   useEffect(() => {
     fetchAllCourses()
   }, [fetchAllCourses])
 
   return (
-    <div className="px-6 pt-24 pb-16">
-      <div className="mx-auto w-full max-w-6xl">
+    <div className="bg-background">
 
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+      {/* ── Page header — consistent with section headers across landing page ── */}
+      <div className="border-b border-border bg-muted/40">
+        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-3">
+              {/* Badge — matches hero / section badges */}
+              <span className="inline-flex h-8 w-fit items-center gap-2 rounded-[10px] border border-border bg-background px-3 text-xs font-medium text-muted-foreground shadow-sm">
+                <span className="relative flex size-1.5" aria-hidden="true">
+                  <span className="absolute inline-flex size-full rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+                </span>
+                Course catalog
+              </span>
 
-            <h1 className="text-3xl font-bold text-foreground">
-              Our Courses
-            </h1>
-            <p className="mt-2 max-w-2xl text-muted-foreground">
-              Discover courses designed to help you learn, grow, and turn your
-              knowledge into real-world skills.
-            </p>
+              <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                Our Courses
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
+                Discover courses designed to help you learn, grow, and turn your
+                knowledge into real-world skills.
+              </p>
+            </div>
+
+            {/* Course count pill */}
+            {!isLoading && courses.length > 0 && (
+              <span className="inline-flex h-8 shrink-0 items-center rounded-[10px] border border-border bg-background px-3 text-xs font-medium text-muted-foreground shadow-sm">
+                {courses.length} courses available
+              </span>
+            )}
           </div>
         </div>
+      </div>
 
+      {/* ── Course grid ── */}
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
         {isLoading ? (
           <CourseCardSkeletonGrid />
+        ) : courses.length === 0 ? (
+          <CoursesEmptyState />
         ) : (
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
           >
             {courses.map((course) => (
               <motion.div
@@ -107,6 +130,7 @@ export default function page() {
           </motion.div>
         )}
       </div>
+
     </div>
   )
 }

@@ -73,7 +73,7 @@ export function AboutHero({
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-muted shadow-lg"
+                className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border  shadow-lg"
             >
                 <Image
                     src="/images/illustrations/about-hero.svg"

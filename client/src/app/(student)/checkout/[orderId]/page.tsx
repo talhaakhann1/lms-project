@@ -58,17 +58,26 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-10 px-6 py-10 lg:px-8 lg:py-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-          Checkout
-        </h1>
-        <p className="text-base text-muted-foreground">
-          Review your order before continuing to payment.
-        </p>
-      </div>
+  <div className="min-h-screen bg-muted/40">
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px] lg:items-start">
+    {/* ── Page header band — consistent with CoursesPage ── */}
+    <div className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10">
+        <div className="flex flex-col gap-3">
+
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+            Checkout
+          </h1>
+          <p className="text-base leading-relaxed text-muted-foreground">
+            Review your order before continuing to payment.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* ── Main content ── */}
+    <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8 lg:py-14">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_440px] lg:items-start">
         <CheckoutSummary order={order} />
         <PaymentSection
           orderId={order?.id}
@@ -78,6 +87,8 @@ export default function CheckoutPage() {
         />
       </div>
     </main>
+
+  </div>
 
   );
 }

@@ -62,65 +62,41 @@ export function Header() {
   }
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 z-50 w-full border-b border-border",
-        scrolled &&
-        "border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50"
-      )}
-    >
-      <nav
-        className="
-    mx-auto flex h-16 w-full max-w-7xl items-center justify-between
-    px-4 sm:px-6
-    lg:grid lg:h-18 lg:grid-cols-[1fr_auto_1fr] lg:justify-normal
-  "
-      >
-        {/* Left */}
-        <div className="min-w-0 lg:pl-3">
-          <Link href="/" className="inline-flex p-1">
-            <Logo
-              className="
-          h-auto
-          w-[120px]
-          sm:w-[135px]
-          lg:w-[150px]
-          xl:w-[160px]
-        "
-            />
-          </Link>
-        </div>
-
-        {/* Center */}
-        <div className="hidden items-center justify-center gap-1 lg:flex">
+     <header className="relative z-50 h-16 border-b border-b-border bg-background lg:h-22">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6 lg:px-8">
+ 
+        {/* Logo */}
+        <Link href="/" className="inline-flex shrink-0 items-center gap-2">
+          <Logo className="h-auto w-[120px] sm:w-[135px] lg:w-[150px] xl:w-[160px]" />
+        </Link>
+ 
+        {/* Desktop nav */}
+        <nav aria-label="Main" className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "h-10 whitespace-nowrap px-3 text-sm xl:px-5 xl:text-base"
-              )}
+              className="p-2 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
             >
               {link.label}
             </Link>
           ))}
-        </div>
-
-        {/* Right */}
-        <div className="hidden min-w-0 items-center justify-end gap-3 lg:flex">
+        </nav>
+ 
+        {/* Right actions */}
+        <div className="flex items-center gap-2.5">
           <ThemeToggle
             variant="rectangle"
             start="bottom-up"
-            className="size-8 shrink-0 rounded-xl border border-border bg-transparent p-2.5"
-            iconClassName="h-4 w-5"
+            className="size-8 shrink-0 rounded-full border border-border bg-background p-2"
+            iconClassName="h-4 w-4"
           />
-
+ 
           {user?.isLoggedIn ? (
             <Button
               disabled={isLoading}
               onClick={logoutHandler}
-              className="h-10 shrink-0 px-4 text-base"
+              className="hidden lg:inline-flex h-10 rounded-xl px-4 text-sm font-semibold"
             >
               {isLoading ? (
                 <>
@@ -136,42 +112,35 @@ export function Header() {
               <Link
                 href="/sign-in"
                 className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "h-10 shrink-0 px-3 text-base"
+                  "hidden lg:inline-flex items-center justify-center",
+                  "h-10 rounded-xl border border-border bg-background px-4 text-sm font-semibold",
+                  "transition-colors hover:bg-accent"
                 )}
               >
                 Sign In
               </Link>
-
               <Link
                 href="/sign-up"
                 className={cn(
-                  buttonVariants(),
-                  "h-10 shrink-0 px-3 text-base"
+                  "hidden lg:inline-flex items-center justify-center",
+                  "h-10 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground",
+                  "transition-colors hover:bg-primary/90"
                 )}
               >
                 Get Started
               </Link>
             </>
           )}
+ 
+          <div className="flex items-center gap-2 lg:hidden">
+            <MobileNav
+              isLoading={isLoading}
+              onLogout={logoutHandler}
+              isLoggedIn={user.isLoggedIn}
+            />
+          </div>
         </div>
-
-        {/* Mobile + tablet */}
-        <div className="flex items-center justify-end gap-2 lg:hidden">
-          <ThemeToggle
-            variant="rectangle"
-            start="bottom-up"
-            className="size-8 shrink-0 rounded-xl border border-border bg-transparent p-2.5"
-            iconClassName="h-4 w-5"
-          />
-
-          <MobileNav
-            isLoading={isLoading}
-            onLogout={logoutHandler}
-            isLoggedIn={user.isLoggedIn}
-          />
-        </div>
-      </nav>
+      </div>
     </header>
   );
 }

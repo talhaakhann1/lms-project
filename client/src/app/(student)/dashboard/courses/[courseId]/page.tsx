@@ -150,7 +150,8 @@ export default function CourseDetailsPage() {
 
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 lg:px-2 lg:py-0">
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-6 py-10 
+                lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 lg:px-8 lg:py-14">
       <div className="flex min-w-0 flex-col gap-8">
         <CourseHero
           course={course}

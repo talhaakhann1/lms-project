@@ -49,7 +49,7 @@ export function Mission({
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-       className="relative aspect-[4/2.8] p-4 w-full overflow-hidden rounded-2xl border border-border bg-muted shadow-lg"
+       className="relative aspect-[4/2.8] p-4 w-full overflow-hidden rounded-2xl border border-border  shadow-lg"
       >
         <Image
           src={missonImage}

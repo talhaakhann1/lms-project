@@ -12,16 +12,17 @@ type CreateCourseDto = z.infer<typeof createCourseSchema>;
 type UpdateCourseDto = z.infer<typeof updateCourseSchema>;
 
 class CourseService {
-  async create(data :CreateCourseDto): Promise<Course> {
-     const formData = new FormData();
+  async create(data: CreateCourseDto): Promise<Course> {
+    const formData = new FormData();
 
-  Object.entries(data).forEach(([key, value]) => {
-    if (value instanceof File) {
-      formData.append(key, value);
-    } else {
-      formData.append(key, String(value));
-    }
-  });
+    Object.entries(data).forEach(([key, value]) => {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else {
+        formData.append(key, String(value));
+      }
+    });
+    
     const response = await api.post<ApiResponse<Course>>(
       "/courses/create",
       formData,
@@ -30,33 +31,28 @@ class CourseService {
     return response.data.data;
   }
 
-  async update(
-    courseId: string,
-    data: UpdateCourseDto
-  ): Promise<Course> {
-      const formData = new FormData();
+  async update(courseId: string, data: UpdateCourseDto): Promise<Course> {
+    const formData = new FormData();
 
-Object.entries(data).forEach(([key, value]) => {
-  if (key === "thumbnail") {
-    if (value instanceof File) {
-      formData.append("thumbnail", value);
-    }
-  } else if (value !== undefined && value !== null) {
-    formData.append(key, String(value));
-  }
-});
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === "thumbnail") {
+        if (value instanceof File) {
+          formData.append("thumbnail", value);
+        }
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
     const response = await api.patch<ApiResponse<Course>>(
       `/courses/update/${courseId}`,
-      formData
+      formData,
     );
 
     return response.data.data;
   }
 
-  async updateThumbnail(
-    courseId: string,
-    data: FormData
-  ): Promise<Course> {
+  async updateThumbnail(courseId: string, data: FormData): Promise<Course> {
     const response = await api.patch<ApiResponse<Course>>(
       `/courses/update-thumbnail/${courseId}`,
       data,
@@ -64,24 +60,20 @@ Object.entries(data).forEach(([key, value]) => {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
 
     return response.data.data;
   }
 
   async getById(courseId: string): Promise<Course> {
-    const response = await api.get<ApiResponse<Course>>(
-      `/courses/${courseId}`
-    );
+    const response = await api.get<ApiResponse<Course>>(`/courses/${courseId}`);
 
     return response.data.data;
   }
 
   async getAll(): Promise<Course[]> {
-    const response = await api.get<ApiResponse<Course[]>>(
-      "/courses"
-    );
+    const response = await api.get<ApiResponse<Course[]>>("/courses");
 
     return response.data.data;
   }
