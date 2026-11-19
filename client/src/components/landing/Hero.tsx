@@ -15,6 +15,7 @@ import {
 import { Button } from "../../components/ui/button"
 import { useAppSelector } from "@/src/store/hook"
 import heroImage from "@/public/images/illustrations/hero-home.webp";
+import { useRouter } from "next/navigation"
 
 
 interface TrustIndicator {
@@ -32,6 +33,7 @@ const ICON_STROKE = 1.75
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion()
+  const router = useRouter()
 
   const containerVariants: Variants = {
     hidden: {},
@@ -62,9 +64,20 @@ export function Hero() {
       },
     }
 
-  const user = useAppSelector((state) => state.auth)
-  const role = user?.user?.role
-  const isLoggedIn = user.isLoggedIn
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth)
+  // const role = user?.user?.role
+
+  const handleClick = () => {
+    if (isLoggedIn && user) {
+      if (user?.role == "student") {
+        router.push("/dashboard")
+      } else {
+        router.push("/admin")
+      }
+    }else{
+      router.push("/sign-up")
+    }
+  }
 
   return (
     <section
@@ -79,7 +92,7 @@ export function Hero() {
           left: "max(0px, calc((100vw - 1280px) / 2 + 760px))",
         }}
       />
- 
+
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
         <motion.div
           variants={containerVariants}
@@ -90,7 +103,7 @@ export function Hero() {
           {/* ── Left column ── */}
           <div className="flex flex-col justify-between gap-8 pb-6">
             <div className="flex flex-col gap-8">
- 
+
               {/* Badge + headline + description — gap-4 matches Zippay's inner spacing */}
               <div className="flex flex-col items-start gap-4">
                 <motion.span
@@ -103,7 +116,7 @@ export function Hero() {
                   </span>
                   Built for modern learning teams
                 </motion.span>
- 
+
                 <motion.h1
                   variants={itemVariants}
                   id="hero-heading"
@@ -111,7 +124,7 @@ export function Hero() {
                 >
                   Skills That Drive Growth
                 </motion.h1>
- 
+
                 <motion.p
                   variants={itemVariants}
                   className="max-w-xl text-base leading-relaxed text-muted-foreground"
@@ -121,13 +134,13 @@ export function Hero() {
                   instructors, students, and administrators alike.
                 </motion.p>
               </div>
- 
+
               {/* CTA buttons — h-[52px] rounded-[16px] matches Zippay exactly */}
               <motion.div
                 variants={itemVariants}
                 className="flex flex-col gap-3 sm:flex-row sm:gap-4"
               >
-                {isLoggedIn ? (
+                {/* {isLoggedIn ? (
                   <Button
                     render={
                       <Link
@@ -143,29 +156,44 @@ export function Hero() {
                     Go to dashboard
                     <ArrowRight className="size-4" strokeWidth={ICON_STROKE} aria-hidden="true" />
                   </Button>
-                ) : (
-                  <>
-                    <Button
-                      render={<Link href="/sign-up" />}
-                      className="h-[52px] w-full rounded-[16px] px-6 text-sm font-semibold sm:w-auto"
-                    >
-                      Start learning free
-                      <ArrowRight className="size-4" strokeWidth={ICON_STROKE} aria-hidden="true" />
-                    </Button>
- 
-                    <Button
-                      variant="outline"
-                      render={<Link href="/courses" />}
-                      className="h-[52px] w-full rounded-[16px] border-border px-6 text-sm font-semibold sm:w-auto"
-                    >
-                      <PlayCircle className="size-4" strokeWidth={ICON_STROKE} aria-hidden="true" />
-                      Browse the catalog
-                    </Button>
-                  </>
-                )}
+                ) : ( */}
+                <>
+                  <Button
+                    onClick={ handleClick }
+                    className="h-[52px] w-full rounded-[16px] px-6 text-sm font-semibold sm:w-auto"
+                  >
+                    {isLoggedIn ? (
+                      "Continue"
+                    ) : (
+                      // <Link
+                      //   href="/sign-up"
+                      //   className="flex items-center justify-center gap-2"
+                      // >
+                      <>
+                        <span className="flex items-center justify-center gap-2">Start learning free</span>
+                        <ArrowRight
+                          className="size-4"
+                          strokeWidth={ICON_STROKE}
+                          aria-hidden="true"
+                        />
+                      </>
+                      // </Link>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    render={<Link href="/courses" />}
+                    className="h-[52px] w-full rounded-[16px] border-border px-6 text-sm font-semibold sm:w-auto"
+                  >
+                    <PlayCircle className="size-4" strokeWidth={ICON_STROKE} aria-hidden="true" />
+                    Browse the catalog
+                  </Button>
+                </>
+
               </motion.div>
             </div>
- 
+
             {/* Trust indicators */}
             <motion.div variants={itemVariants} className="flex flex-col gap-4">
               <p className="text-sm text-muted-foreground">
@@ -188,7 +216,7 @@ export function Hero() {
               </ul>
             </motion.div>
           </div>
- 
+
           {/* ── Right column — image panel ── */}
           <div className="min-w-0">
             <div className="relative h-full">
@@ -197,7 +225,7 @@ export function Hero() {
                 aria-hidden="true"
                 className="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 lg:hidden"
               />
- 
+
               <motion.div
                 variants={previewVariants}
                 className="relative z-10 flex w-full justify-center py-6 lg:justify-start lg:py-0"
@@ -217,7 +245,7 @@ export function Hero() {
               </motion.div>
             </div>
           </div>
- 
+
         </motion.div>
       </div>
     </section>

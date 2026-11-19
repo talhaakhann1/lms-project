@@ -55,10 +55,8 @@ export default function RootLayout({
           enableSystem
         >
           <Providers>
-            <AuthInitializer>
               {children}
               <Toaster />
-            </AuthInitializer>
           </Providers>
         </ThemeProvider>
       </body>

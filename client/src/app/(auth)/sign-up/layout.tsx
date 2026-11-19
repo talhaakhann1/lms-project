@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import AuthInitializer from "../../AuthInitializer";
+import { Header } from "@/src/components/layout/Header";
 
 export const metadata: Metadata = {
   title: "Create Account | Edvra",
@@ -11,5 +13,7 @@ export default function ExploreLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return <>
+  {children}
+  </>;
 }

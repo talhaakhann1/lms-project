@@ -11,7 +11,6 @@ type ProviderProps = {
 export default function Providers({ children }: ProviderProps) {
     return <Provider store={store}>
         <BlurFadeThemeTransition>
-
             {children}
         </BlurFadeThemeTransition>
     </Provider>

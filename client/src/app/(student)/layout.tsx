@@ -5,6 +5,7 @@ import "@/src/app/globals.css"
 import { AppShell } from "../../components/app-shell";
 import ProtectedRoute from "@/src/components/auth/ProtectedRoute";
 import { SidebarProvider } from "@/src/components/ui/sidebar";
+import AuthInitializer from "../AuthInitializer";
 
 export const metadata: Metadata = {
   title: "My Learning | Edvra",
@@ -19,6 +20,8 @@ export default function RootLayout({
 }>) {
   return (
       <div className="min-h-full flex flex-col">
+        <AuthInitializer>
+          
         <ProtectedRoute
           allowedRoles={["student"]}
           fallback="/admin"
@@ -29,6 +32,7 @@ export default function RootLayout({
           </AppShell>
      
         </ProtectedRoute>
+            </AuthInitializer>
       </div>
   );
 }

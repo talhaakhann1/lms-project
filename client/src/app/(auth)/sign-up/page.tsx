@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { showSuccess, showError, showPromise } from "../../../components/ui/toaster";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
@@ -18,7 +18,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema } from "@/src/Schemas/user.schema";
 import * as z from "zod"
-import { useAppDispatch } from "@/src/store/hook";
+import { useAppDispatch, useAppSelector } from "@/src/store/hook";
 import { useRouter } from "next/navigation";
 import { api } from "@/src/libs/axios";
 import ApiResponse from "@/src/utils/ApiResponse";
@@ -69,6 +69,7 @@ const socialProviders = [
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const { isLoggedIn, user } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const router = useRouter()
   const fieldId = useId();
@@ -109,6 +110,15 @@ export default function SignUpPage() {
     }
   };
 
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      if (user.role === "student") {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/admin");
+      }
+    }
+  }, [isLoggedIn, user, router]);
 
   return (
     <section className="flex min-h-screen w-full items-center justify-center px-4 py-16 md:py-24">

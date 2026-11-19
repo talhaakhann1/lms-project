@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/src/app/globals.css";
 import { AppShell } from "../../components/app-shell";
 import ProtectedRoute from "@/src/components/auth/ProtectedRoute";
+import AuthInitializer from "../AuthInitializer";
 
 
 export const metadata: Metadata = {
@@ -17,14 +18,16 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
+      <AuthInitializer>
       <ProtectedRoute
         allowedRoles={["admin", "instructor"]}
         fallback="/dashboard"
-      >
+        >
         <AppShell variant="admin">
           {children}
         </AppShell>
       </ProtectedRoute>
+        </AuthInitializer>
     </div>
   );
 }

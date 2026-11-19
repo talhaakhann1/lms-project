@@ -9,7 +9,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useId, useState } from "react";
-import { useAppDispatch } from "@/src/store/hook";
+import { useAppDispatch, useAppSelector } from "@/src/store/hook";
 import { useRouter } from "next/navigation";
 import { signInSchema } from "@/src/Schemas/user.schema";
 import * as z from "zod"
@@ -26,6 +26,7 @@ import { showError, showSuccess } from "@/src/components/ui/toaster";
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const {isLoggedIn,user}=useAppSelector((state)=>state.auth)
   const dispatch = useAppDispatch()
   const router = useRouter()
 
@@ -105,6 +106,17 @@ export default function SignInPage() {
       href: "#",
     },
   ];
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      if (user.role === "student") {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/admin");
+      }
+    }
+  }, [isLoggedIn, user, router]);
+
 
   return (
     <section className="flex min-h-screen w-full items-center justify-center px-4 py-16 md:py-24">
