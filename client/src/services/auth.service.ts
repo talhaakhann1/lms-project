@@ -28,6 +28,21 @@ class AuthService {
     return response.data.data;
   }
 
+  async loginWithGoogle(code : string ):Promise<User>{
+    const response=await api.post("/auth/register/google",{
+      code
+    })
+
+    return response.data.data
+  }
+  async loginWithGithub(code : string ):Promise<User>{
+    const response=await api.post("/auth/register/github",{
+      code
+    })
+
+    return response.data.data
+  }
+
   async register(data: SignUpDto): Promise<User> {
     const response = await api.post<ApiResponse<User>>(
       "/auth/sign-up",
