@@ -1,27 +1,23 @@
 import "express";
 import { JwtPayload } from "jsonwebtoken";
-import type { IUser } from "../interfaces/user.interface.ts";
+import type { IUser } from "../interfaces/user.interface.js";
 import type mongoose from "mongoose";
-import { Request } from "express";
-
 declare global {
   namespace Express {
     interface Request {
-      user: {
-        _id: mongoose.Types.ObjectId;
-        role: string;
-    };
-    lessonContext?: {
-      id: Types.ObjectId;
-      course: Types.ObjectId;
-      order: number;
-    };
-}
+      user: IUser;
+      lessonContext?: {
+        id: string | mongoose.Types.ObjectId;
+        course: mongoose.Types.ObjectId;
+        order: number;
+      };
+    }
   }
 }
-
 export interface TokenPayload extends JwtPayload {
   _id: string;
+  type?: "access" | "refresh";
+  email?: string;
+  role?: string;
 }
-
 export {};
