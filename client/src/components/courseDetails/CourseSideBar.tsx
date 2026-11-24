@@ -113,7 +113,7 @@ export function CourseSidebar({
               src={course.thumbnail.url}
               alt={`${course.title} course thumbnail`}
               fill
-               priority
+              priority
               sizes="(min-width: 1024px) 320px, 100vw"
               className="object-cover"
             />
@@ -125,14 +125,14 @@ export function CourseSidebar({
         </div>
 
         <CardContent className="flex flex-col gap-4 p-5">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold text-foreground"> {course?.isEnrolled ? "Purchased" : `$${course?.price}`}</span>
-            {course?.price ? (
-              <span className="text-sm text-muted-foreground line-through">
+          {!course?.isEnrolled ? (
+            <div className="flex items-baseline gap-2">
+              <span className="font-display text-3xl font-bold text-foreground">
                 ${course?.price}
               </span>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
+
 
           <motion.div
             whileHover={{ scale: 1.02 }}

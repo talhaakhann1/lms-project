@@ -103,7 +103,7 @@ export function CourseCard({ course, role, isLoggedIn }: CourseCardProps) {
 
         <CardFooter className="flex items-center justify-between border-t p-4">
           <span className="text-lg font-bold">
-            ${course?.price}
+            {course?.isEnrolled ? "Enrolled" : `$${course?.price}`}
           </span>
 
           {role === "student" && !course?.isEnrolled ? (
