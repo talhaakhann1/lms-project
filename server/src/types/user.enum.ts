@@ -7,3 +7,8 @@ export enum UserStatus{
     ACTIVE="active",
     INACTIVE="INACTIVE",
 }
+export enum LoginTypes{
+    LOCAL="local",
+    GOOGLE="google",
+    GITHUB="github",
+}
