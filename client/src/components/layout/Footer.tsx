@@ -11,8 +11,8 @@ export default function Footer() {
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
     { label: "FAQs", href: "/#faqs" },
-    { label: "Sign In", href: "/sign-in" },
-    { label: "Create Account", href: "/sign-up" },
+    { label: "Sign In", href: "/auth/sign-in" },
+    { label: "Create Account", href: "/auth/sign-up" },
   ];
 
   return (

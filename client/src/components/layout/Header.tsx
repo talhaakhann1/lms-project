@@ -110,7 +110,7 @@ export function Header() {
           ) : (
             <>
               <Link
-                href="/sign-in"
+                href="/auth/sign-in"
                 className={cn(
                   "hidden lg:inline-flex items-center justify-center",
                   "h-10 rounded-xl border border-border bg-background px-4 text-sm font-semibold",
@@ -120,7 +120,7 @@ export function Header() {
                 Sign In
               </Link>
               <Link
-                href="/sign-up"
+                href="/auth/sign-up"
                 className={cn(
                   "hidden lg:inline-flex items-center justify-center",
                   "h-10 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground",

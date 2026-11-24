@@ -75,7 +75,7 @@ export function Hero() {
         router.push("/admin")
       }
     }else{
-      router.push("/sign-up")
+      router.push("/auth/sign-up")
     }
   }
 
@@ -165,10 +165,6 @@ export function Hero() {
                     {isLoggedIn ? (
                       "Continue"
                     ) : (
-                      // <Link
-                      //   href="/sign-up"
-                      //   className="flex items-center justify-center gap-2"
-                      // >
                       <>
                         <span className="flex items-center justify-center gap-2">Start learning free</span>
                         <ArrowRight
@@ -177,7 +173,6 @@ export function Hero() {
                           aria-hidden="true"
                         />
                       </>
-                      // </Link>
                     )}
                   </Button>
 

@@ -109,7 +109,7 @@ export function CtaBanner() {
                   className="flex flex-col gap-3 sm:flex-row sm:gap-4"
                 >
                   <Button
-                    render={<Link href="/sign-up" />}
+                    render={<Link href="/auth/sign-up" />}
                     className="h-[52px] w-full rounded-[16px] px-6 text-sm font-semibold sm:w-auto"
                   >
                     Create free account

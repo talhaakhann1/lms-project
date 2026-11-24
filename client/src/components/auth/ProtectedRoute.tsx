@@ -28,7 +28,7 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (!isLoggedIn || !user) {
-      router.replace("/sign-in");
+      router.replace("/auth/sign-in");
       return;
     }
 

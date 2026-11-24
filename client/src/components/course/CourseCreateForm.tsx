@@ -118,7 +118,6 @@ export function CourseCreateForm({ instructors }: CourseFormProps) {
   const { isSubmitting, errors } = form.formState;
 
   async function onSubmit(data: CourseFormValues) {
-    console.log(data)
     try {
       await courseService.create(data)
       showSuccess("Succesfully created the course")

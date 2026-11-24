@@ -38,7 +38,7 @@ export function CourseSidebar({
         "Authentication required",
         "Please sign up or log in to purchase this course."
       );
-      router.push("/sign-up");
+      router.push("/auth/sign-up");
       return;
     }
 

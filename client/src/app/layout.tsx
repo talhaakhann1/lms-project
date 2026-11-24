@@ -3,7 +3,7 @@ import "@/src/app/globals.css"
 import localFont from "next/font/local";
 import { Toaster } from "../components/ui/toaster";
 import { ThemeProvider } from "next-themes";
-import AuthInitializer from "./AuthInitializer";
+
 
 const satoshi = localFont({
   src: [
@@ -53,10 +53,12 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
+          enableColorScheme
+          disableTransitionOnChange
         >
           <Providers>
-              {children}
-              <Toaster />
+            {children}
+            <Toaster />
           </Providers>
         </ThemeProvider>
       </body>
