@@ -12,22 +12,25 @@ import { UserRoles } from "../types/user.enum.js";
 
 export const verifyJWT = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const token =
-      req.cookies.accessToken ||
-      req.header("Authorization")?.replace("Bearer ", "");
-
-    if (!token) {
-      throw new ApiError(401, "Access token missing");
+    const authHeader = req.header("Authorization");
+    let bearerToken: string | undefined;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      bearerToken = authHeader.substring(7).trim();
     }
 
-    try {
-      const decodedToken = jwt.verify(
-        token,
-        process.env.ACCESS_TOKEN_SECRET!,
-      ) as TokenPayload;
+    const token = req.cookies?.accessToken || bearerToken;
 
-      if (!decodedToken) {
-        throw new ApiError(400, "Invalid access token");
+    try {
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, {
+        algorithms: ["HS256"],
+      }) as TokenPayload;
+
+      if (
+        !decodedToken ||
+        decodedToken.type !== "access" ||
+        !decodedToken._id
+      ) {
+        throw new ApiError(401, "Invalid access token");
       }
 
       const user = await User.findById(decodedToken._id).select(
@@ -35,34 +38,47 @@ export const verifyJWT = asyncHandler(
       );
 
       if (!user) {
-        throw new ApiError(401, "Invalid Access Token");
+        throw new ApiError(401, "Invalid access token");
       }
 
       req.user = user as IUser;
       next();
     } catch (error: unknown) {
+      if (error instanceof ApiError) throw error;
       throw new ApiError(401, "Invalid access token");
     }
   },
 );
 
 export const getLoggedInUserOrIgnore = asyncHandler(async (req, res, next) => {
-  const token =
-    req.cookies?.accessToken ||
-    req.header("Authorization")?.replace("Bearer ", "");
+  const authHeader = req.header("Authorization");
+  let bearerToken: string | undefined;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    bearerToken = authHeader.substring(7).trim();
+  }
+
+  const token = req.cookies?.accessToken || bearerToken;
+
+  if (!token) {
+    return next();
+  }
 
   try {
-    const decodedToken = jwt.verify(
-      token,
-      process.env.ACCESS_TOKEN_SECRET!,
-    ) as TokenPayload;
-    const user = await User.findById(decodedToken._id).select(
-      "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-    );
-    req.user = user as IUser;
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, {
+      algorithms: ["HS256"],
+    }) as TokenPayload;
+
+    if (decodedToken && decodedToken.type === "access" && decodedToken._id) {
+      const user = await User.findById(decodedToken._id).select(
+        "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+      );
+      if (user) {
+        req.user = user as IUser;
+      }
+    }
     next();
   } catch (error) {
-    // Fail silently with req.user being falsy
+    // Fail silently with req.user being undefined for anonymous access
     next();
   }
 });
@@ -89,7 +105,7 @@ export const verifyEnrollment = asyncHandler(
       return next();
     }
 
-    let courseId= req.params.courseId as string;
+    let courseId = req.params.courseId as string;
 
     if (!courseId && req.params.lessonId) {
       const lesson = await Lesson.findById(req.params.lessonId);
