@@ -76,12 +76,12 @@ export function MobileNav({ isLoggedIn, onLogout, isLoading }: MobileNavProps) {
                             ) : (
                                 <>
                                     <Button className="height: calc(var(--spacing)*10)" variant="outline">
-                                        <Link href={"/sign-in"}>
+                                        <Link href={"/auth/sign-in"}>
                                             Sign In
                                         </Link>
                                     </Button>
                                     <Button className="w-full">
-                                        <Link href={"/sign-up"}>
+                                        <Link href={"/auth/sign-up"}>
                                             Get Started
                                         </Link>
                                     </Button>
