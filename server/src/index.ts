@@ -1,31 +1,30 @@
+import "dotenv/config";
 import app from "./app.js";
-import dotenv from "dotenv";
-import express from "express";
-import type { Request, Response } from "express";
 import { connectDB } from "./db/index.js";
 import { connectRedis } from "./config/redis.js";
 
-dotenv.config({
-    path:"./.env"
-});
+const PORT = process.env.PORT || 8000;
 
-const PORT = process.env.PORT||8000;
-
-connectDB()
-connectRedis()
-  .then(() => {
+async function startServer() {
+  try {
+    await connectDB();
+    await connectRedis();
     const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
     server.on("error", (err) => {
       console.error("Server error:", err);
     });
-  })
-  .catch((err: unknown) => {
-    console.error("MongoDB connection failed:", err);
-  });
-
-app.get("/health", (req: Request, res: Response) => {
-  res.json("All working good");
-});
-
+    const shutdown = () => {
+      server.close(() => {
+        process.exit(0);
+      });
+    };
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
+  } catch (err: unknown) {
+    console.error("Startup failed:", err);
+    process.exit(1);
+  }
+}
+startServer();
