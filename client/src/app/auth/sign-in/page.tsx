@@ -106,6 +106,8 @@ export default function SignInPage() {
 
       let errorMessage = AxiosError.response?.data.message
 
+      console.log("Debug", errorMessage);
+
       showError(errorMessage ?? "")
     } finally {
       setIsSubmitting(false)

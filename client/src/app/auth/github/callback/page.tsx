@@ -7,6 +7,8 @@ import { authService } from "@/src/services/auth.service";
 import { logIn } from "@/src/store/authSlice";
 import { useAppDispatch } from "@/src/store/hook";
 import { OAuthFallback, OAuthLoadingCard } from "@/src/components/auth/OAuthCallback";
+import { AxiosError } from "axios";
+import ApiResponse from "@/src/utils/ApiResponse";
 
 function GithubAuthContent() {
     const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ function GithubAuthContent() {
             setLoading(false);
             return;
         }
-        
+
         hasProcessedCode.current = true;
         const handleGithubAuth = async () => {
 
@@ -45,11 +47,11 @@ function GithubAuthContent() {
                 }
                 showSuccess("Signed in successfully through github")
             } catch (error: unknown) {
-                showError(
-                    error instanceof Error
-                        ? error.message
-                        : "Github authentication failed"
-                );
+                const AxiosError = error as AxiosError<ApiResponse<unknown>>
+
+                let errorMessage = AxiosError.response?.data.message
+
+                showError(errorMessage ?? "")
                 await new Promise((res) => {
                     setTimeout(() => {
                         res("reslove")
