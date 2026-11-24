@@ -20,11 +20,15 @@ export const completeLesson = asyncHandler(
 
     const userId = req.user._id;
 
+    if (!lesson || !lesson.course || !lesson.id) {
+      throw new ApiError(400, "Lesson context missing");
+    }
+
     const session = await mongoose.startSession();
 
     try {
       await session.withTransaction(async () => {
-        const progress = await LessonProgress.findOneAndUpdate({
+       const progress = await LessonProgress.findOne({
           user: userId,
           course: lesson?.course,
         }).session(session);
@@ -34,14 +38,14 @@ export const completeLesson = asyncHandler(
         }
 
         const alreadyCompleted = progress.completedLessonIds.some(
-          (id) => id.toString() === lessonId,
+          (id: mongoose.Types.ObjectId) => id.toString() === lessonId,
         );
 
         if (alreadyCompleted) {
           return;
         }
 
-        progress.completedLessonIds.push(lesson?.id);
+        progress.completedLessonIds.push(new mongoose.Types.ObjectId(lesson.id.toString()));
 
         if (progress.completedLessons >= progress.totalLessons) {
           return;

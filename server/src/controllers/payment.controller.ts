@@ -113,6 +113,13 @@ export const createPaymentSession = asyncHandler(
       throw new ApiError(404, "Order not found");
     }
 
+    if (
+      req.user.role !== "admin" &&
+      order.user.toString() !== req.user._id.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to pay for this order");
+    }
+
     if (order.isPaid) {
       throw new ApiError(400, "Order is already paid");
     }
@@ -129,7 +136,7 @@ export const createPaymentSession = asyncHandler(
 
       metadata: {
         orderId: order._id.toString(),
-        userId: req.user._id.toString(),
+        userId: order.user.toString(),
         courseId: course._id.toString(),
       },
 
@@ -150,7 +157,7 @@ export const createPaymentSession = asyncHandler(
       payment_intent_data: {
         metadata: {
           orderId: order._id.toString(),
-          userId: req.user._id.toString(),
+          userId: order.user.toString(),
           courseId: course._id.toString(),
         },
       },
@@ -182,15 +189,18 @@ export const getPaymentByOrderId = asyncHandler(
       throw new ApiError(400, "Invalid order id");
     }
 
-    const cacheKey = `payment:order:${orderId}`;
-
-    const cachePayment = await redisClient.get(cacheKey);
-
-    if (cachePayment) {
-      return res
-      .status(200)
-      .json(new ApiResponse(200, JSON.parse(cachePayment), "Payment fetched successfully"));
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw new ApiError(404, "Order not found");
     }
+
+    if (
+      req.user.role !== "admin" &&
+      order.user.toString() !== req.user._id.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to view this payment");
+    }
+
 
     const [payment] = await Payment.aggregate([
       {
@@ -205,12 +215,6 @@ export const getPaymentByOrderId = asyncHandler(
       throw new ApiError(404, "Payment not found");
     }
 
-    await redisClient.setEx(
-      cacheKey,
-      60,
-      JSON.stringify(payment)
-    );
-
     return res
       .status(200)
       .json(new ApiResponse(200, payment, "Payment fetched successfully"));
@@ -218,15 +222,19 @@ export const getPaymentByOrderId = asyncHandler(
 );
 export const getAllPayment = asyncHandler(
   async (req: Request, res: Response) => {
-    const cacheKey=`payments:all`
-    const cachePayments=await redisClient.get(cacheKey)
+    const cacheKey = `payments:all`;
+    const cachePayments = await redisClient.get(cacheKey);
 
-    if(cachePayments){
+    if (cachePayments) {
       return res
-      .status(200)
-      .json(
-        new ApiResponse(200, JSON.parse(cachePayments), "Successfully get all payment"),
-      );
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cachePayments),
+            "Successfully get all payment",
+          ),
+        );
     }
 
     const [payment] = await Payment.aggregate([
@@ -236,11 +244,7 @@ export const getAllPayment = asyncHandler(
       ...commonPaymentAggregation(),
     ]);
 
-    await redisClient.setEx(
-      cacheKey,
-      60,
-      JSON.stringify(payment)
-    )
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(payment));
 
     return res
       .status(200)

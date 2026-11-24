@@ -23,7 +23,7 @@ function commonOrderAggregation(): PipelineStage[] {
               _id: 0,
               id: { $toString: "$_id" },
               fullName: 1,
-              email:1
+              email: 1,
             },
           },
         ],
@@ -66,7 +66,7 @@ function commonOrderAggregation(): PipelineStage[] {
               id: { $toString: "$_id" },
               title: 1,
               instructor: 1,
-              thumbnail:1
+              thumbnail: 1,
             },
           },
         ],
@@ -94,7 +94,7 @@ function commonOrderAggregation(): PipelineStage[] {
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   const { courseId } = req.params;
-  
+
   const userId = req.user._id;
   if (!courseId) {
     throw new ApiError(400, "course id is required");
@@ -111,13 +111,13 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
 
   if (existingOrder) {
     const [order] = await Order.aggregate([
-    {
-      $match: {
-        _id: existingOrder._id,
+      {
+        $match: {
+          _id: existingOrder._id,
+        },
       },
-    },
-    ...commonOrderAggregation(),
-  ]);
+      ...commonOrderAggregation(),
+    ]);
     return res
       .status(200)
       .json(new ApiResponse(200, order, "Existing pending order"));
@@ -147,12 +147,18 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
 
 export const getAllOrders = asyncHandler(
   async (req: Request, res: Response) => {
-    const cacheKey=`orders:all`
-    const cacheOrders=await redisClient.get(cacheKey)
-    if(cacheOrders){
+    const cacheKey = `orders:all`;
+    const cacheOrders = await redisClient.get(cacheKey);
+    if (cacheOrders) {
       return res
-      .status(200)
-      .json(new ApiResponse(200, JSON.parse(cacheOrders), "Successfully get all orders"));
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cacheOrders),
+            "Successfully get all orders",
+          ),
+        );
     }
     const orders = await Order.aggregate([
       {
@@ -161,11 +167,7 @@ export const getAllOrders = asyncHandler(
       ...commonOrderAggregation(),
     ]);
 
-    await redisClient.setEx(
-      cacheKey,
-      60,
-      JSON.stringify(orders)
-    );
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(orders));
 
     return res
       .status(200)
@@ -176,18 +178,27 @@ export const getOrderById = asyncHandler(
   async (req: Request, res: Response) => {
     const orderId = req.params.orderId as string;
 
-    const cacheKey=`order:${orderId}`
+    if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+      throw new ApiError(400, "Valid order ID is required");
+    }
 
-    const cacheOrder=await redisClient.get(cacheKey)
-    
-    if(cacheOrder){
+    const userId = req.user._id.toString();
+    const isAdmin = req.user.role === "admin";
+    const cacheKey = `order:${orderId}`;
+
+    const cacheOrder = await redisClient.get(cacheKey);
+
+    if (cacheOrder) {
+      const parsed = JSON.parse(cacheOrder);
+      if (!isAdmin && parsed.user?.id !== userId) {
+        throw new ApiError(403, "You are not authorized to view this order");
+      }
+
       return res
-      .status(200)
-      .json(new ApiResponse(200, JSON.parse(cacheOrder), "Successfully get order"));
+        .status(200)
+        .json(new ApiResponse(200, parsed, "Successfully get order"));
     }
-    if (!orderId) {
-      throw new ApiError(400, "orderid is required");
-    }
+
     const [order] = await Order.aggregate([
       {
         $match: {
@@ -197,14 +208,22 @@ export const getOrderById = asyncHandler(
       ...commonOrderAggregation(),
     ]);
 
-    await redisClient.setEx(
+    if (!order) {
+      throw new ApiError(404, "Order not found");
+    }
+
+    if (!isAdmin && order.user?.id !== userId) {
+      throw new ApiError(403, "You are not authorized to view this order");
+    }
+
+     await redisClient.setEx(
       cacheKey,
       60,
-      JSON.stringify(order)
-    )
+      JSON.stringify(order),
+    );
 
     return res
       .status(200)
-      .json(new ApiResponse(200, order , "Successfully get order"));
+      .json(new ApiResponse(200, order, "Successfully get order"));
   },
 );

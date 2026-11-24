@@ -92,13 +92,11 @@ export const createReview = asyncHandler(
       course: course._id,
       user: userId,
     });
-  
-    await redisClient.del(`review:course:${courseId}`)
+
+    await redisClient.del(`review:course:${courseId}`);
     return res
       .status(201)
-      .json(
-        new ApiResponse(201, {}, "Successfully created the review"),
-      );
+      .json(new ApiResponse(201, {}, "Successfully created the review"));
   },
 );
 
@@ -128,9 +126,7 @@ export const updateReview = asyncHandler(
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, {}, "Successfully updated the review"),
-      );
+      .json(new ApiResponse(200, {}, "Successfully updated the review"));
   },
 );
 
@@ -140,12 +136,22 @@ export const deleteReview = asyncHandler(
     if (!reviewId) {
       throw new ApiError(400, "reviewId is required");
     }
-    const review = await Review.findByIdAndDelete(reviewId);
-    
+    const review = await Review.findById(reviewId);
+
     if (!review) {
       throw new ApiError(404, "review does not exist");
     }
-    await redisClient.del(`review:course:${review?.course}`)
+
+    if (
+      req.user.role !== "admin" &&
+      review.user.toString() !== req.user._id.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to delete this review");
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+    await redisClient.del(`review:course:${review.course}`);
+
     return res
       .status(200)
       .json(new ApiResponse(200, {}, "Successfully deleted the review"));
@@ -154,25 +160,27 @@ export const deleteReview = asyncHandler(
 
 export const getCourseReviewById = asyncHandler(
   async (req: Request, res: Response) => {
-    const  courseId  = req.params.courseId as string;
+    const courseId = req.params.courseId as string;
+
     if (!courseId) {
       throw new ApiError(400, "Invalid course id");
     }
     const cacheKey = `review:course:${courseId}`;
 
-    const cacheReview= await redisClient.get(cacheKey);
+    const cacheReview = await redisClient.get(cacheKey);
 
-    if(cacheReview){
-       return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          JSON.parse,
-          "Successfully get all review by courseId",
-        ),
-      );
+    if (cacheReview) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(cacheReview),
+            "Successfully get all review by courseId",
+          ),
+        );
     }
+
     const review = await Review.aggregate([
       {
         $match: {
@@ -182,11 +190,7 @@ export const getCourseReviewById = asyncHandler(
       ...commonReviewAggregation(),
     ]);
 
-    await redisClient.setEx(
-      cacheKey,
-      60,
-      JSON.stringify(review)
-    )
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(review));
 
     return res
       .status(200)

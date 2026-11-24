@@ -9,11 +9,6 @@ import { Enrollment } from "../models/enrollment.model.js";
 import { User } from "../models/user.model.js";
 import redisClient from "../config/redis.js";
 
-const startDate = new Date();
-startDate.setDate(startDate.getDate() - 6);
-const endDate = new Date();
-endDate.setHours(23, 59, 59, 999);
-
 export interface RevenuePoint {
   label: string;
   revenue: number;
@@ -30,6 +25,12 @@ interface EnrollmentPoint {
 
 export const getAdminMetrics = asyncHandler(
   async (req: Request, res: Response) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+
     const userId = req.user._id;
 
     const cacheKey = `admin-metrics:${userId}`;
@@ -235,7 +236,7 @@ export const getAdminMetrics = asyncHandler(
         stats,
       }),
     );
-    
+
     return res.status(200).json(
       new ApiResponse(
         200,

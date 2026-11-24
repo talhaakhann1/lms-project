@@ -219,19 +219,26 @@ export const createLesson = asyncHandler(
     }
     const userId = req.user._id;
 
-    const [courseExists, existingLesson] = await Promise.all([
-      Course.exists({
-        _id: courseId,
-      }),
-
+    const [targetCourse, existingLesson] = await Promise.all([
+      Course.findById(courseId),
       Lesson.findOne({
         course: courseId,
         $or: [{ title }, { order }],
       }).lean(),
     ]);
 
-    if (!courseExists) {
+    if (!targetCourse) {
       throw new ApiError(404, "Course does not exist");
+    }
+
+    if (
+      req.user.role !== "admin" &&
+      targetCourse.createdBy.toString() !== userId.toString()
+    ) {
+      throw new ApiError(
+        403,
+        "You are not authorized to add lessons to this course",
+      );
     }
 
     if (existingLesson) {
@@ -381,6 +388,14 @@ export const updateLesson = asyncHandler(
       throw new ApiError(404, "Lesson not found");
     }
 
+    const course = await Course.findById(existingLesson.course);
+    if (
+      req.user.role !== "admin" &&
+      course?.createdBy.toString() !== req.user._id.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to update this lesson");
+    }
+
     if (req.file) {
       const uploadedVideo = await uploadAtCloudinary(req.file.path);
 
@@ -432,10 +447,23 @@ export const deleteLesson = asyncHandler(
     const lessonId = req.params.lessonId as string;
 
     if (!lessonId) {
-      throw new ApiError(400, "lession id is required");
+      throw new ApiError(400, "Lesson ID is required");
     }
 
     const userId = req.user._id;
+
+    const existingLesson = await Lesson.findById(lessonId);
+    if (!existingLesson) {
+      throw new ApiError(404, "Lesson not found");
+    }
+
+    const course = await Course.findById(existingLesson.course);
+    if (
+      req.user.role !== "admin" &&
+      course?.createdBy.toString() !== req.user._id.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to delete this lesson");
+    }
 
     const session = await mongoose.startSession();
 
@@ -451,7 +479,7 @@ export const deleteLesson = asyncHandler(
           throw new ApiError(404, "Lesson does not exist");
         }
 
-        const courseId=deletedLesson.course.toString();
+        const courseId = deletedLesson.course.toString();
 
         await LessonProgress.updateMany(
           {
@@ -499,7 +527,7 @@ export const deleteLesson = asyncHandler(
                               $divide: ["$completedLessons", "$totalLessons"],
                             },
                             100,
-                          ], 
+                          ],
                         },
                         0,
                       ],
@@ -529,7 +557,7 @@ export const deleteLesson = asyncHandler(
         );
         return {
           videoPublicId: deletedLesson.video.publicId,
-          courseId
+          courseId,
         };
       });
 
@@ -613,7 +641,6 @@ export const getLessonById = asyncHandler(
     console.time("parallel-queries");
 
     const [previousLesson, nextLesson, lessonResult] = await Promise.all([
-
       Lesson.findOne({
         course: courseObjectId,
         order: {

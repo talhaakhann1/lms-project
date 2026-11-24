@@ -91,7 +91,7 @@ export function commonCourseAggregation(
         price: 1,
         learningOutcomes: 1,
         requirements: 1,
-
+        isPublished:1,
         instructor: 1,
         category: 1,
 
@@ -140,7 +140,7 @@ export const createCourse = asyncHandler(
     if (!thumbnail) {
       throw new ApiError(
         500,
-        "Somethng went wrong while uploading at cloudinary",
+        "Something went wrong while uploading at cloudinary",
       );
     }
     const course = await Course.create({
@@ -209,6 +209,13 @@ export const updateCourse = asyncHandler(
     if (!existedCourse) {
       throw new ApiError(404, "course does not exist");
     }
+
+    if (
+      req.user.role !== "admin" &&
+      existedCourse.createdBy.toString() !== userId.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to update this course");
+    }
     if (req.file) {
       const thumbnailLocalPath = req.file.path;
 
@@ -245,7 +252,7 @@ export const updateCourse = asyncHandler(
     );
 
     if (!course) {
-      throw new ApiError(404, "Lesson not found");
+      throw new ApiError(404, "Course not found");
     }
 
     await Promise.all([
@@ -266,30 +273,39 @@ export const deleteCourse = asyncHandler(
       throw new ApiError(400, "courseId is required");
     }
 
+    const existedCourse = await Course.findById(courseId);
+    if (!existedCourse) {
+      throw new ApiError(404, "Course does not exist");
+    }
+
+    if (
+      req.user.role !== "admin" &&
+      existedCourse.createdBy.toString() !== userId.toString()
+    ) {
+      throw new ApiError(403, "You are not authorized to delete this course");
+    }
+
     const session = await mongoose.startSession();
 
     let deletedCourse;
 
     try {
       const deletedData = await session.withTransaction(async () => {
-
-       deletedCourse = await Course.findOneAndDelete({
-          _id: courseId,
-          createdBy: userId,
-        }).session(session);
+        deletedCourse =
+          await Course.findByIdAndDelete(courseId).session(session);
 
         await Lesson.deleteMany({
-          courseId: courseId,
+          course: courseId,
         }).session(session);
 
         return {
-          thumbnailPublicId: deletedCourse?.thumbnail.publicId,
+          thumbnailPublicId: deletedCourse?.thumbnail?.publicId,
         };
       });
 
       const thumbnailPublicId = deletedData.thumbnailPublicId;
       if (thumbnailPublicId) {
-     await deleteAtCloudinary(thumbnailPublicId, "image");
+        await deleteAtCloudinary(thumbnailPublicId, "image");
       }
 
       await Promise.all([
@@ -297,7 +313,6 @@ export const deleteCourse = asyncHandler(
         redisClient.del(`course:${courseId}`),
         redisClient.del(`lessons:course:${courseId}`),
       ]);
-
     } catch (error) {
       throw new ApiError(500, "Failed to delete course");
     } finally {
@@ -333,16 +348,19 @@ export const getCourseById = asyncHandler(
         );
     }
 
+    const isAdminOrInstructor = ["admin", "instructor"].includes(
+      req.user?.role,
+    );
+
     const [course] = await Course.aggregate([
       {
         $match: {
           _id: new Types.ObjectId(courseId),
-          isPublished: true,
+          ...(isAdminOrInstructor ? {} : { isPublished: true }),
         },
       },
       ...commonCourseAggregation(req.user?._id),
     ]);
-
     if (!course) {
       throw new ApiError(404, "course does not exist");
     }
@@ -361,6 +379,8 @@ export const getAllCourses = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
 
+    
+
     const cacheKey = `courses:${userId}`;
 
     const cacheCourses = await redisClient.get(cacheKey);
@@ -376,15 +396,18 @@ export const getAllCourses = asyncHandler(
           ),
         );
     }
+    const isAdminOrInstructor = ["admin", "instructor"].includes(
+      req.user?.role,
+    );
+
     const courses = await Course.aggregate([
       {
         $match: {
-          isPublished: true,
+          ...(isAdminOrInstructor ? {} : { isPublished: true }),
         },
       },
       ...commonCourseAggregation(req.user?._id),
     ]);
-
     await redisClient.setEx(cacheKey, 60, JSON.stringify(courses));
 
     return res
@@ -398,4 +421,3 @@ export const getAllCourses = asyncHandler(
       );
   },
 );
-
