@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema } from "mongoose";
 import type { IUser } from "../interfaces/user.interface.js";
 import { UserRoles, UserStatus } from "../types/user.enum.js";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 
@@ -17,11 +17,12 @@ const userSchema = new Schema<IUser>(
       type: String,
       unique: true,
       index: true,
+      lowercase: true,
       required: true,
       trim: true,
     },
     title: {
-      type: String,   
+      type: String,
     },
     bio: {
       type: String,
@@ -30,24 +31,24 @@ const userSchema = new Schema<IUser>(
       type: String,
     },
     emailVerificationToken: {
-        type: String,
+      type: String,
     },
     emailVerificationExpiry: {
-        type: Date,
+      type: Date,
     },
-    isVerified:{
-      type:Boolean,
-      default:false
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
     avatar: {
       url: {
         type: String,
-        default:`https://via.placeholder.com/200x200.png`,
+        default: `https://via.placeholder.com/200x200.png`,
         required: true,
       },
       publicId: {
         type: String,
-         default: ""
+        default: "",
       },
     },
     role: {
@@ -55,64 +56,77 @@ const userSchema = new Schema<IUser>(
       enum: UserRoles,
       default: UserRoles.STUDENT,
     },
-    status:{
-      type:String,
-      enum:UserStatus,
+    status: {
+      type: String,
+      enum: UserStatus,
     },
     refreshToken: {
       type: String,
+    },
+    provider: {
+      type: String,
+      default: "local",
     },
   },
   { timestamps: true },
 );
 
-userSchema.pre("save",async function(){
-  if(!this.isModified("password")) return ;
-  this.password=await bcrypt.hash(this.password,10)
-})
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
 userSchema.methods.isPasswordValid = async function (password: string) {
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken=function(){
-   const expiresIn = ( process.env.ACCESS_TOKEN_EXPIRY || "1d") as NonNullable<SignOptions["expiresIn"]>;
-    return jwt.sign(
-       {
-      _id: this._id,
-      email: this.email,
-      fullName: this.fullName,
-    },
-    process.env.ACCESS_TOKEN_SECRET as string ,
-    {
-      expiresIn
-    }
-    )
-}
-
-userSchema.methods.generateRefreshToken=function(){
-   const expiresIn = (process.env.REFRESH_TOKEN_EXPIRY || "1d") as NonNullable<SignOptions["expiresIn"]>;
+userSchema.methods.generateAccessToken = function () {
+  const expiresIn = (process.env.ACCESS_TOKEN_EXPIRY || "1d") as NonNullable<
+    SignOptions["expiresIn"]
+  >;
   return jwt.sign(
-       {
+    {
       _id: this._id,
       email: this.email,
       fullName: this.fullName,
+      role: this.role,
+      type: "access",
     },
-    process.env.REFRESH_TOKEN_SECRET as string ,
+    process.env.ACCESS_TOKEN_SECRET as string,
     {
-      expiresIn
-    }
-    )
-}
+      expiresIn,
+      algorithm: "HS256",
+    },
+  );
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  const expiresIn = (process.env.REFRESH_TOKEN_EXPIRY || "30d") as NonNullable<
+    SignOptions["expiresIn"]
+  >;
+  return jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+      fullName: this.fullName,
+      type: "refresh",
+    },
+    process.env.REFRESH_TOKEN_SECRET as string,
+    {
+      expiresIn,
+      algorithm: "HS256",
+    },
+  );
+};
 
 userSchema.methods.generateTemporaryToken = function () {
-    const unHashedToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto
-        .createHash("sha256")
-        .update(unHashedToken)
-        .digest("hex");
-    const tokenExpiry = Date.now() + 15 * 60 * 1000;
-    return { unHashedToken, hashedToken, tokenExpiry }
-}
+  const unHashedToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(unHashedToken)
+    .digest("hex");
+  const tokenExpiry = Date.now() + 15 * 60 * 1000;
+  return { unHashedToken, hashedToken, tokenExpiry };
+};
 
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);

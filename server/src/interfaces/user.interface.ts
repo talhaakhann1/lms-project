@@ -2,18 +2,19 @@ import type { Document } from "mongoose";
 
 export interface IUser extends Document {
   fullName: string;
-  title:string;
-  bio:string;
+  title: string;
+  bio: string;
   email: string;
   password: string;
   isVerified: boolean;
-  emailVerificationToken:string;
-    emailVerificationExpiry:Date;
-  avatar: { url: string,publicId: string };
-  refreshToken: string;
-  accessToken: string;
+  emailVerificationToken: string;
+  emailVerificationExpiry: Date;
+  provider:string;
+  avatar: { url: string; publicId: string };
+  refreshToken?: string | undefined;
+  accessToken?: string | undefined;
   role: string;
-  status:string;
+  status: string;
   generateAccessToken(): string;
   generateRefreshToken(): string;
   generateTemporaryToken(): {};
